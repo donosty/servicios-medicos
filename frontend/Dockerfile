@@ -1,4 +1,12 @@
-FROM node:20-alpine AS builder
+FROM node:20.20.2 AS development
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+EXPOSE 4200
+CMD ["npm", "run", "dev"]
+
+FROM node:20.20.2 AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

@@ -94,6 +94,16 @@ Detén el entorno de desarrollo con:
 docker compose -f docker-compose.yml -f docker-compose.dev.yml down
 ```
 
+Si existe un contenedor anterior llamado `angular_frontend_dev`, recréalo para
+que utilice la imagen de desarrollo Node.js 20 actualizada:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --force-recreate
+```
+
+El frontend de desarrollo utiliza el puerto `4200`; el frontend de producción
+utiliza NGINX en el puerto `80`.
+
 ## Entorno de producción
 
 Construye las imágenes y despliega la aplicación:
