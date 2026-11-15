@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es" ng-app="serviciosMedicosApp">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Servicios Médicos</title>
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body ng-controller="AppController as app">
+    <main class="container py-5">
+      <h1 class="display-5">Servicios Médicos</h1>
+      <p class="lead">Plataforma web full stack con AngularJS 1.8.2.</p>
+      <div class="alert alert-info" role="status">{{ app.apiMessage }}</div>
+    </main>
+    <script src="/Lib/angular.min.js"></script>
+    <script src="/app.js"></script>
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

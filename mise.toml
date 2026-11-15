@@ -1,0 +1,17 @@
+[tools]
+node = "20.20.2"
+
+[env]
+NODE_ENV = "development"
+
+[tasks.dev]
+description = "Iniciar servidor de desarrollo"
+run = "docker compose --env-file .env -f docker-compose.yml -f docker-compose.dev.yml up --build"
+
+[tasks.build]
+description = "Construir aplicación"
+run = "docker compose --env-file .env build"
+
+[tasks.test]
+description = "Validar configuración de contenedores"
+run = "docker compose --env-file .env config --quiet"
