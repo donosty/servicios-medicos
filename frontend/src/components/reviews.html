@@ -1,0 +1,64 @@
+<section class="reviews" id="testimonios" aria-labelledby="reviews-heading">
+  <div class="home-wrap">
+    <h2 id="reviews-heading">Testimonios</h2>
+    <p class="reviews-note">Relatos ficticios de demostración.</p>
+    <div class="reviews-carousel">
+      <button
+        type="button"
+        class="reviews-arrow reviews-prev"
+        aria-label="Testimonio anterior"
+        aria-controls="reviews-list"
+        ng-click="$ctrl.move(-1)"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+      <ul id="reviews-list" class="reviews-list">
+        <li
+          class="review-card"
+          ng-repeat="review in $ctrl.visible track by review.name"
+        >
+          <div class="review-profile">
+            <img
+              class="review-avatar"
+              ng-if="review.portrait"
+              ng-src="{{review.portrait}}"
+              width="64"
+              height="64"
+              alt=""
+              loading="lazy"
+            />
+            <span
+              class="review-avatar review-initials"
+              ng-if="review.initials"
+              aria-hidden="true"
+            >
+              {{review.initials}}
+            </span>
+            <div>
+              <span
+                class="review-stars"
+                role="img"
+                aria-label="5 de 5 estrellas"
+                >★★★★★</span
+              >
+              <h3>{{review.name}}</h3>
+            </div>
+          </div>
+          <blockquote>{{review.comment}}</blockquote>
+        </li>
+      </ul>
+      <button
+        type="button"
+        class="reviews-arrow reviews-next"
+        aria-label="Testimonio siguiente"
+        aria-controls="reviews-list"
+        ng-click="$ctrl.move(1)"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+    <p class="visually-hidden" role="status" aria-atomic="true">
+      {{$ctrl.announcement}}
+    </p>
+  </div>
+</section>

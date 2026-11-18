@@ -1,0 +1,61 @@
+<section
+  id="especialidades"
+  class="care-specialties"
+  aria-labelledby="titulo-especialidades"
+>
+  <div class="home-wrap">
+    <h2 id="titulo-especialidades" class="care-title" tabindex="-1">
+      Especialidades Médicas
+    </h2>
+    <p class="care-intro">
+      Encuentra la atención que necesitas para ti y tu familia.
+    </p>
+    <p class="visually-hidden" role="status" aria-atomic="true">
+      <span ng-if="$ctrl.query && $ctrl.filtered.length"
+        >{{$ctrl.filtered.length}} de 4 especialidades.</span
+      >
+      <span ng-if="$ctrl.query && !$ctrl.filtered.length"
+        >No se encontraron especialidades.</span
+      >
+    </p>
+    <p ng-if="$ctrl.query && $ctrl.filtered.length">
+      <button
+        type="button"
+        class="care-book care-book-link"
+        ng-click="$ctrl.onClear()"
+      >
+        Ver todas las especialidades
+      </button>
+    </p>
+    <div class="care-specialty-grid" ng-if="$ctrl.filtered.length">
+      <article
+        class="care-specialty-card"
+        ng-repeat="item in $ctrl.filtered track by item.id"
+      >
+        <img
+          ng-src="/assets/icons/{{item.id}}.webp"
+          width="110"
+          height="110"
+          alt=""
+        />
+        <h3>{{item.name}}</h3>
+        <p>{{item.description}}</p>
+        <button
+          type="button"
+          class="care-book"
+          ng-class="{'care-book-link': item.id === 'cardiologia' || item.id === 'medicina-general'}"
+          ng-attr-aria-label="Agendar cita en {{item.name}}"
+          ng-click="$ctrl.requestBooking(item, $event)"
+        >
+          Agendar cita
+        </button>
+      </article>
+    </div>
+    <div class="care-empty" ng-if="!$ctrl.filtered.length">
+      <p>No encontramos especialidades que coincidan con «{{$ctrl.query}}».</p>
+      <button type="button" class="care-book" ng-click="$ctrl.onClear()">
+        Ver todas las especialidades
+      </button>
+    </div>
+  </div>
+</section>
