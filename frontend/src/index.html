@@ -1,20 +1,161 @@
 <!doctype html>
 <html lang="es" ng-app="serviciosMedicosApp">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Servicios Médicos</title>
-    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/styles.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#003B71" />
+    <meta
+      name="description"
+      content="Conoce MEDICOM y explora nuestras especialidades médicas para toda la familia."
+    />
+    <title>Inicio | MEDICOM</title>
+    <link rel="icon" href="/assets/medicom-icon.webp" type="image/webp" />
+    <link
+      rel="preload"
+      href="/assets/fonts/plus-jakarta-sans.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/components/care.css" />
+    <link rel="stylesheet" href="/components/reviews.css" />
   </head>
-  <body ng-controller="AppController as app">
-    <main class="container py-5">
-      <h1 class="display-5">Servicios Médicos</h1>
-      <p class="lead">Plataforma web full stack con AngularJS 1.8.2.</p>
-      <div class="alert alert-info" role="status">{{ app.apiMessage }}</div>
+  <body class="medicom-home" id="inicio" ng-controller="HomeController as home">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="home-wrap header-inner">
+        <a class="brand-link" href="#inicio" aria-label="MEDICOM, inicio">
+          <img
+            src="/assets/medicom.webp"
+            alt="MEDICOM"
+            width="560"
+            height="208"
+          />
+        </a>
+        <nav
+          id="menu-principal"
+          class="main-nav"
+          aria-label="Navegación principal"
+          ng-class="{'is-open': home.menuOpen}"
+          ng-keydown="home.handleMenuKey($event)"
+        >
+          <a href="#inicio" aria-current="page" ng-click="home.closeMenu()"
+            >Inicio</a
+          >
+          <a href="#especialidades" ng-click="home.closeMenu()"
+            >Especialidades</a
+          >
+          <button
+            type="button"
+            ng-click="home.showNotice('El directorio de médicos estará disponible próximamente.', $event)"
+          >
+            Médicos
+          </button>
+          <a href="#contacto" ng-click="home.closeMenu()">Contacto</a>
+        </nav>
+        <div class="header-actions">
+          <button
+            type="button"
+            class="book-button"
+            ng-click="home.showNotice('La agenda de citas estará disponible próximamente.', $event)"
+          >
+            Agendar cita
+          </button>
+          <button
+            type="button"
+            id="menu-toggle"
+            class="menu-toggle"
+            aria-label="Menú principal"
+            aria-controls="menu-principal"
+            ng-attr-aria-expanded="{{home.menuOpen}}"
+            ng-click="home.toggleMenu()"
+          >
+            <svg aria-hidden="true" width="24" height="24">
+              <use href="/assets/ui.svg#menu"></use>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    <main id="contenido" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-team"
+          src="/assets/equipo-medico.webp"
+          alt="Tres integrantes del equipo médico con bata y estetoscopio"
+          width="841"
+          height="683"
+          fetchpriority="high"
+        />
+        <div class="home-wrap hero-inner">
+          <div class="hero-copy">
+            <h1 id="hero-title">
+              Cuidamos de tu salud con
+              <span>especialistas de primer nivel</span>
+            </h1>
+            <p>
+              Nuestra especialidad eres tú. Contamos con médicos especialistas
+              para atender las necesidades médicas de toda tu familia.
+            </p>
+            <form
+              class="specialty-search"
+              role="search"
+              aria-label="Buscar especialidades"
+              ng-submit="home.search()"
+            >
+              <label for="busqueda" class="visually-hidden"
+                >Busca una especialidad</label
+              >
+              <input
+                type="search"
+                id="busqueda"
+                ng-model="home.searchText"
+                placeholder="Busca una especialidad"
+                autocomplete="off"
+              />
+              <button type="submit" aria-label="Buscar especialidad">
+                <svg width="24" height="24" aria-hidden="true">
+                  <use href="/assets/ui.svg#search"></use>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+      <specialty-list
+        query="home.query"
+        on-book="home.showNotice(message, $event)"
+        on-clear="home.clearSearch()"
+      ></specialty-list>
+      <care-benefits></care-benefits>
+      <patient-reviews></patient-reviews>
     </main>
+    <home-footer
+      on-notice="home.showNotice(message, $event)"
+      on-select="home.filterBy(name)"
+    ></home-footer>
+    <dialog
+      id="notice"
+      class="notice-dialog"
+      aria-labelledby="notice-title"
+      aria-describedby="notice-text"
+    >
+      <h2 id="notice-title">Próximamente</h2>
+      <p id="notice-text" ng-bind="home.notice"></p>
+      <button
+        type="button"
+        class="book-button"
+        ng-click="home.closeNotice()"
+        autofocus
+      >
+        Entendido
+      </button>
+    </dialog>
     <script src="/Lib/angular.min.js"></script>
     <script src="/app.js"></script>
-    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/components/care.js"></script>
+    <script src="/components/reviews.js"></script>
   </body>
 </html>

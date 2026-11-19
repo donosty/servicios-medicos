@@ -1,0 +1,160 @@
+specialty-list,
+care-benefits {
+  display: block;
+}
+
+.care-specialties,
+.care-benefits {
+  text-align: center;
+  padding-block: clamp(32px, 3.2vw, 48px);
+  font-family: var(--body);
+}
+
+.care-specialties {
+  color: var(--navy);
+  background: linear-gradient(var(--pale), #e3f2fb);
+}
+
+.care-specialties .care-title,
+.care-benefits .care-title {
+  color: inherit;
+  margin: 0;
+  font: 800 clamp(1.65rem, 2.85vw, 2.55rem)/1.2 var(--heading);
+  letter-spacing: -0.04em;
+}
+
+.care-intro {
+  margin: 0.55rem auto clamp(22px, 2vw, 30px);
+  color: var(--slate);
+  line-height: 1.45;
+}
+
+.care-specialty-grid,
+.care-benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.care-specialty-grid {
+  gap: clamp(12px, 1.55vw, 24px);
+}
+
+.care-specialty-card {
+  padding: clamp(16px, 1.7vw, 26px) clamp(12px, 1.4vw, 20px);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  border: 1px solid #dde7ed;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 9px rgb(28 58 80 / 15%);
+}
+
+.care-specialty-card img {
+  width: clamp(58px, 5.9vw, 85px);
+  height: auto;
+}
+
+.care-specialty-card h3,
+.care-benefit-grid h3 {
+  margin: 0.6rem 0 0.45rem;
+  color: inherit;
+  font: 750 clamp(1.04rem, 1.65vw, 1.48rem)/1.24 var(--subheading);
+  letter-spacing: -0.035em;
+}
+
+.care-specialty-card p,
+.care-benefit-grid p {
+  color: var(--slate);
+  font-size: clamp(0.94rem, 1.1vw, 1rem);
+  line-height: 1.43;
+  margin: 0 auto 1rem;
+  max-width: 26ch;
+}
+
+.care-book {
+  border: 0;
+  border-radius: 2rem;
+  padding: 0.48rem 1.24rem;
+  min-height: 42px;
+  background: var(--orange);
+  color: #222b38;
+  font: 700 0.95rem/1.25 var(--subheading);
+  margin-top: auto;
+}
+
+.care-book:hover {
+  box-shadow: 0 2px 6px rgb(28 58 80 / 22%);
+}
+
+.care-book-link {
+  background: transparent;
+  color: #047154;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.care-book:focus-visible,
+.care-title:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 4px;
+}
+
+.care-empty {
+  padding: 2rem 1rem;
+  margin-inline: auto;
+  border-radius: 12px;
+  max-width: 36rem;
+  background: white;
+  overflow-wrap: anywhere;
+}
+
+.care-benefits {
+  background: var(--slate);
+  color: white;
+}
+
+.care-benefit-grid {
+  gap: clamp(14px, 2.2vw, 36px);
+  list-style: none;
+  margin: clamp(20px, 2vw, 32px) 0 0;
+  padding: 0;
+}
+
+.care-benefit-grid img {
+  width: clamp(52px, 5vw, 72px);
+  height: auto;
+}
+
+.care-benefit-grid h3 {
+  max-width: 11.5em;
+  margin-inline: auto;
+  text-wrap: balance;
+}
+
+.care-benefit-grid p {
+  margin-bottom: 0;
+  color: #e3edf3;
+}
+
+@media (max-width: 900px) {
+  .care-specialty-grid,
+  .care-benefit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .care-specialty-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .care-specialty-card {
+    padding: 20px;
+  }
+
+  .care-benefit-grid {
+    gap: 28px 16px;
+  }
+}

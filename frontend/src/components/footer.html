@@ -1,0 +1,79 @@
+<footer class="home-footer" id="contacto" aria-label="Pie de página y contacto">
+  <div class="home-wrap footer-grid">
+    <div class="footer-intro">
+      <a
+        class="brand-link"
+        href="#inicio"
+        aria-label="MEDICOM, volver al inicio"
+      >
+        <img
+          src="/assets/medicom-blanco.webp"
+          alt="MEDICOM"
+          width="560"
+          height="208"
+          loading="lazy"
+        />
+      </a>
+      <p>
+        Cuidamos de tu salud con atención especializada para toda la familia.
+      </p>
+    </div>
+    <nav aria-label="Enlaces rápidos">
+      <h2>Enlaces rápidos</h2>
+      <a href="#inicio">Inicio</a>
+      <a href="#especialidades">Especialidades</a>
+      <button
+        type="button"
+        ng-click="$ctrl.onNotice({message: 'El directorio de médicos estará disponible próximamente.', $event: $event})"
+      >
+        Médicos
+      </button>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <nav aria-label="Especialidades médicas">
+      <h2>Especialidades</h2>
+      <button
+        type="button"
+        ng-repeat="item in $ctrl.specialties track by item.id"
+        ng-click="$ctrl.onSelect({name: item.name})"
+      >
+        {{item.name}}
+      </button>
+    </nav>
+    <div class="contact-column">
+      <h2>Contacto</h2>
+      <p class="contact-line">
+        <svg aria-hidden="true"><use href="/assets/ui.svg#mail"></use></svg
+        >salud.medicom@medicom.com
+      </p>
+      <p class="contact-line">
+        <svg aria-hidden="true"><use href="/assets/ui.svg#pin"></use></svg>Av.
+        Cuautitlán
+      </p>
+    </div>
+    <div class="social-column">
+      <h2>Redes</h2>
+      <div class="social-icons">
+        <button
+          type="button"
+          aria-label="Facebook de MEDICOM, próximamente"
+          ng-click="$ctrl.onNotice({message: 'El perfil de Facebook estará disponible próximamente.', $event: $event})"
+        >
+          <svg aria-hidden="true">
+            <use href="/assets/ui.svg#facebook"></use>
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="Instagram de MEDICOM, próximamente"
+          ng-click="$ctrl.onNotice({message: 'El perfil de Instagram estará disponible próximamente.', $event: $event})"
+        >
+          <svg aria-hidden="true">
+            <use href="/assets/ui.svg#instagram"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <p class="copyright">© 2026 MEDICOM</p>
+</footer>

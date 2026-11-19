@@ -1,0 +1,17 @@
+<section class="care-benefits" aria-labelledby="titulo-beneficios">
+  <div class="home-wrap">
+    <h2 id="titulo-beneficios" class="care-title">¿Por qué elegirnos?</h2>
+    <ul class="care-benefit-grid">
+      <li ng-repeat="benefit in $ctrl.benefits track by benefit.id">
+        <img
+          ng-src="/assets/icons/{{benefit.id}}.webp"
+          width="110"
+          height="110"
+          alt=""
+        />
+        <h3>{{benefit.name}}</h3>
+        <p>{{benefit.description}}</p>
+      </li>
+    </ul>
+  </div>
+</section>
