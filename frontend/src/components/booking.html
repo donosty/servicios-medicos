@@ -21,7 +21,7 @@
             class="booking-select"
             ng-model="$ctrl.selectedSpecialty"
             ng-change="$ctrl.changeSpecialty()"
-            ng-options="item.name as item.name for item in $ctrl.specialties"
+            ng-options="item.id as item.name for item in $ctrl.specialties"
           >
             <option value="">Selecciona una especialidad</option>
           </select>
@@ -79,12 +79,12 @@
           <div class="time-grid" role="radiogroup" aria-label="Horarios disponibles">
             <button
               type="button"
-              ng-repeat="time in $ctrl.availableTimes track by time"
-              ng-class="{'is-selected': $ctrl.selectedTime === time}"
-              ng-click="$ctrl.selectedTime = time"
-              ng-attr-aria-pressed="{{$ctrl.selectedTime === time}}"
+              ng-repeat="time in $ctrl.availableTimes track by time.value"
+              ng-class="{'is-selected': $ctrl.selectedTime === time.value}"
+              ng-click="$ctrl.selectTime(time)"
+              ng-attr-aria-pressed="{{$ctrl.selectedTime === time.value}}"
             >
-              {{time}}
+              {{time.label}}
             </button>
           </div>
         </section>
@@ -134,7 +134,7 @@
         <dl>
           <div>
             <dt>Especialidad</dt>
-            <dd>{{$ctrl.selectedSpecialty || 'Por seleccionar'}}</dd>
+            <dd>{{$ctrl.selectedSpecialtyName || 'Por seleccionar'}}</dd>
           </div>
           <div>
             <dt>Médico</dt>
@@ -166,8 +166,11 @@
         </p>
         <div class="booking-success" ng-if="$ctrl.confirmed" role="status">
           <strong>Cita agendada</strong>
-          <span>Te enviaremos la confirmación por correo.</span>
+          <span>Folio: {{$ctrl.folio}}</span>
         </div>
+        <p class="booking-error" ng-if="$ctrl.errorMessage" role="alert">
+          {{$ctrl.errorMessage}}
+        </p>
       </aside>
     </div>
   </div>

@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS appointment_statuses (
 
 CREATE TABLE IF NOT EXISTS appointments (
     appointment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    folio TEXT NOT NULL UNIQUE,
     patient_id UUID NOT NULL,
     doctor_id UUID NOT NULL,
     specialty_id SMALLINT NOT NULL,
@@ -110,6 +111,37 @@ CREATE TABLE IF NOT EXISTS appointments (
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT appointments_time_order CHECK (end_at > start_at)
 );
+
+CREATE TABLE IF NOT EXISTS appointment_registrations (
+    registration_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    appointment_id UUID NOT NULL UNIQUE,
+    folio TEXT NOT NULL UNIQUE,
+    specialty_name TEXT NOT NULL,
+    doctor_name TEXT NOT NULL,
+    patient_name TEXT NOT NULL,
+    patient_phone TEXT NOT NULL,
+    patient_email TEXT NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT appointment_registrations_appointment_fk
+        FOREIGN KEY (appointment_id) REFERENCES appointments (appointment_id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+ALTER TABLE appointments
+    ADD COLUMN IF NOT EXISTS folio TEXT;
+
+UPDATE appointments
+SET folio = 'MED-' || to_char(created_at, 'YYYYMMDD') || '-' ||
+            upper(substr(replace(appointment_id::text, '-', ''), 1, 8))
+WHERE folio IS NULL;
+
+ALTER TABLE appointments
+    ALTER COLUMN folio SET NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS appointments_folio_unique
+    ON appointments (folio);
 
 CREATE UNIQUE INDEX IF NOT EXISTS appointments_doctor_start_unique
     ON appointments (doctor_id, start_at)
@@ -175,26 +207,54 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 INSERT INTO medical_specialties (slug, name, description, icon_path, display_order)
 VALUES
-    ('pediatria', 'Pediatría', 'Cuidamos la salud y el desarrollo de niñas y niños.', '/assets/icons/pediatria.webp', 1),
-    ('cardiologia', 'Cardiología', 'Te acompañamos en el cuidado de tu corazón.', '/assets/icons/cardiologia.webp', 2),
-    ('ginecologia', 'Ginecología', 'Atención a tu salud en cada etapa de la vida.', '/assets/icons/ginecologia.webp', 3),
-    ('medicina-general', 'Medicina General', 'Una primera consulta para cuidar de toda tu familia.', '/assets/icons/medicina-general.webp', 4)
+    ('neurologia', 'Neurología', 'Diagnóstico y atención integral de trastornos del sistema nervioso.', '/assets/icons/atencion.webp', 1),
+    ('traumatologia', 'Traumatología', 'Atención especializada de lesiones traumáticas y del sistema musculoesquelético.', '/assets/icons/atencion.webp', 2),
+    ('ortopedia', 'Ortopedia', 'Tratamiento de huesos, articulaciones y problemas de movimiento.', '/assets/icons/atencion.webp', 3),
+    ('cardiologia', 'Cardiología', 'Prevención, diagnóstico y cuidado integral de tu corazón.', '/assets/icons/cardiologia.webp', 4),
+    ('pediatria', 'Pediatría', 'Cuidamos la salud y el desarrollo de niñas y niños.', '/assets/icons/pediatria.webp', 5),
+    ('nutricion', 'Nutrición', 'Acompañamiento personalizado para una alimentación saludable.', '/assets/icons/tecnologia.webp', 6),
+    ('cirugia-maxilofacial', 'Cirugía Maxilofacial', 'Atención quirúrgica de boca, cara, mandíbula y estructuras relacionadas.', '/assets/icons/atencion.webp', 7),
+    ('cirugia-plastica', 'Cirugía Plástica', 'Procedimientos reconstructivos y estéticos con atención especializada.', '/assets/icons/atencion.webp', 8),
+    ('psiquiatria', 'Psiquiatría', 'Evaluación y tratamiento especializado de la salud mental.', '/assets/icons/atencion.webp', 9)
 ON CONFLICT (slug) DO UPDATE
 SET name = EXCLUDED.name,
     description = EXCLUDED.description,
     icon_path = EXCLUDED.icon_path,
     display_order = EXCLUDED.display_order;
 
+UPDATE medical_specialties
+SET is_active = (slug IN (
+    'neurologia',
+    'traumatologia',
+    'ortopedia',
+    'cardiologia',
+    'pediatria',
+    'nutricion',
+    'cirugia-maxilofacial',
+    'cirugia-plastica',
+    'psiquiatria'
+));
+
 INSERT INTO doctors (doctor_id, professional_title, first_name, last_name, description, image_path)
 VALUES
+    ('1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10', 'Dr.', 'Daniel', 'Vega',
+     'Especialista en diagnóstico y tratamiento neurológico.', '/assets/photo 2.jpg'),
+    ('2f5e3e32-83ed-4a1e-c38b-9b5b2f5d7f21', 'Dra.', 'Laura', 'Morales',
+     'Especialista en lesiones traumáticas y recuperación funcional.', '/assets/photo 3.jpg'),
+    ('3f6a4f43-94fe-5b2f-d49c-ac6c3f6e8f32', 'Dr.', 'Ricardo', 'Navarro',
+     'Especialista en traumatología y salud de las articulaciones.', '/assets/photo 4.jpg'),
+    ('4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7', 'Dr.', 'Carlos', 'Ramírez',
+     'Cardiólogo. Prevención y cuidado integral de tu corazón.', '/assets/photo 5.jpg'),
     ('6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41', 'Dra.', 'Sofía', 'Martínez',
      'Pediatra. Especialista en atención integral infantil.', '/assets/photo 2.jpg'),
-    ('4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7', 'Dr.', 'Carlos', 'Ramírez',
-     'Cardiólogo. Prevención y cuidado de tu corazón.', '/assets/photo 3.jpg'),
-    ('c2a1e16c-dfee-4a48-a57d-e66d5ca2ec0b', 'Dra.', 'Ana', 'Torres',
-     'Ginecóloga. Atención integral en cada etapa.', '/assets/photo 4.jpg'),
-    ('ff91cb93-4e6d-4707-a2ab-4e2a1b0622fa', 'Dr.', 'Miguel', 'Sánchez',
-     'Médico general. Primera atención para toda la familia.', '/assets/photo 5.jpg')
+    ('5f7b5f54-a50f-6c30-e5ad-bd7d4f7f9f43', 'Lic.', 'Mariana', 'Cruz',
+     'Nutrióloga clínica con atención personalizada.', '/assets/photo 3.jpg'),
+    ('6f8c6f65-b610-7d41-f6be-ce8e5f8fa054', 'Dr.', 'Alejandro', 'Ibarra',
+     'Especialista en cirugía oral y cirugía maxilofacial.', '/assets/photo 4.jpg'),
+    ('7f9d7f76-c721-8e52-f7cf-df9f6f9fb165', 'Dra.', 'Valeria', 'Santos',
+     'Especialista en cirugía reconstructiva y plástica.', '/assets/photo 5.jpg'),
+    ('8fac8077-d832-9f63-f8df-ffaf718fc276', 'Dr.', 'Andrés', 'Herrera',
+     'Psiquiatra enfocado en atención integral de la salud mental.', '/assets/photo 2.jpg')
 ON CONFLICT (doctor_id) DO UPDATE
 SET professional_title = EXCLUDED.professional_title,
     first_name = EXCLUDED.first_name,
@@ -202,14 +262,33 @@ SET professional_title = EXCLUDED.professional_title,
     description = EXCLUDED.description,
     image_path = EXCLUDED.image_path;
 
+UPDATE doctors
+SET is_active = FALSE
+WHERE doctor_id NOT IN (
+    '1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10',
+    '2f5e3e32-83ed-4a1e-c38b-9b5b2f5d7f21',
+    '3f6a4f43-94fe-5b2f-d49c-ac6c3f6e8f32',
+    '4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7',
+    '6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41',
+    '5f7b5f54-a50f-6c30-e5ad-bd7d4f7f9f43',
+    '6f8c6f65-b610-7d41-f6be-ce8e5f8fa054',
+    '7f9d7f76-c721-8e52-f7cf-df9f6f9fb165',
+    '8fac8077-d832-9f63-f8df-ffaf718fc276'
+);
+
 INSERT INTO doctor_specialties (doctor_id, specialty_id)
 SELECT doctor_id, specialty_id
 FROM (
     VALUES
-        ('6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41'::uuid, 'pediatria'),
+        ('1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10'::uuid, 'neurologia'),
+        ('2f5e3e32-83ed-4a1e-c38b-9b5b2f5d7f21'::uuid, 'traumatologia'),
+        ('3f6a4f43-94fe-5b2f-d49c-ac6c3f6e8f32'::uuid, 'ortopedia'),
         ('4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7'::uuid, 'cardiologia'),
-        ('c2a1e16c-dfee-4a48-a57d-e66d5ca2ec0b'::uuid, 'ginecologia'),
-        ('ff91cb93-4e6d-4707-a2ab-4e2a1b0622fa'::uuid, 'medicina-general')
+        ('6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41'::uuid, 'pediatria'),
+        ('5f7b5f54-a50f-6c30-e5ad-bd7d4f7f9f43'::uuid, 'nutricion'),
+        ('6f8c6f65-b610-7d41-f6be-ce8e5f8fa054'::uuid, 'cirugia-maxilofacial'),
+        ('7f9d7f76-c721-8e52-f7cf-df9f6f9fb165'::uuid, 'cirugia-plastica'),
+        ('8fac8077-d832-9f63-f8df-ffaf718fc276'::uuid, 'psiquiatria')
 ) AS assignments (doctor_id, specialty_slug)
 JOIN medical_specialties ON specialty_slug = slug
 ON CONFLICT (doctor_id, specialty_id) DO NOTHING;
