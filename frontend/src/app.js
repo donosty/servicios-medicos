@@ -12,6 +12,8 @@
         home.searchText = "";
         home.query = "";
         home.menuOpen = false;
+        home.bookingOpen = false;
+        home.bookingSpecialty = "";
 
         home.toggleMenu = function () {
           home.menuOpen = !home.menuOpen;
@@ -72,6 +74,32 @@
 
         home.search = function () {
           home.filterBy(home.searchText || "");
+        };
+
+        home.openBooking = function (name, event) {
+          home.bookingOpen = true;
+          home.bookingSpecialty = name || "";
+          home.closeMenu();
+          $timeout(
+            () => {
+              const heading = doc.getElementById("agenda-titulo");
+              if (heading) {
+                heading.focus();
+                doc.getElementById("contenido").scrollIntoView();
+              }
+            },
+            0,
+            false,
+          );
+        };
+
+        home.closeBooking = function () {
+          home.bookingOpen = false;
+          $timeout(
+            () => doc.querySelector(".header-actions .book-button").focus(),
+            0,
+            false,
+          );
         };
 
         home.clearSearch = function () {

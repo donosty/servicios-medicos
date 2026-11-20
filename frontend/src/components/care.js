@@ -71,13 +71,7 @@
         };
 
         this.requestBooking = function (specialty, event) {
-          this.onBook({
-            message:
-              "La agenda de " +
-              specialty.name +
-              " estará disponible próximamente.",
-            $event: event,
-          });
+          this.onBook({ name: specialty.name, $event: event });
         };
       },
     })
