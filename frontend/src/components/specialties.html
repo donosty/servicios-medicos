@@ -1,5 +1,4 @@
 <section
-  id="especialidades"
   class="care-specialties"
   aria-labelledby="titulo-especialidades"
 >
@@ -56,7 +55,6 @@
         <button
           type="button"
           class="care-book"
-          ng-class="{'care-book-link': item.id === 'cardiologia' || item.id === 'medicina-general'}"
           ng-attr-aria-label="Agendar cita en {{item.name}}"
           ng-click="$ctrl.requestBooking(item, $event)"
         >
