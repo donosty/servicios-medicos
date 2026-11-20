@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/components/care.css" />
+    <link rel="stylesheet" href="/components/booking.css" />
     <link rel="stylesheet" href="/components/reviews.css" />
   </head>
   <body class="medicom-home" id="inicio" ng-controller="HomeController as home">
@@ -59,7 +60,7 @@
           <button
             type="button"
             class="book-button"
-            ng-click="home.showNotice('La agenda de citas estará disponible próximamente.', $event)"
+            ng-click="home.openBooking('', $event)"
           >
             Agendar cita
           </button>
@@ -80,7 +81,7 @@
       </div>
     </header>
     <main id="contenido" tabindex="-1">
-      <section class="hero" aria-labelledby="hero-title">
+      <section class="hero" aria-labelledby="hero-title" ng-if="!home.bookingOpen">
         <img
           class="hero-team"
           src="/assets/equipo-medico.webp"
@@ -125,12 +126,18 @@
         </div>
       </section>
       <specialty-list
+        ng-if="!home.bookingOpen"
         query="home.query"
-        on-book="home.showNotice(message, $event)"
+        on-book="home.openBooking(name, $event)"
         on-clear="home.clearSearch()"
       ></specialty-list>
-      <care-benefits></care-benefits>
-      <patient-reviews></patient-reviews>
+      <care-benefits ng-if="!home.bookingOpen"></care-benefits>
+      <patient-reviews ng-if="!home.bookingOpen"></patient-reviews>
+      <appointment-booking
+        ng-if="home.bookingOpen"
+        specialty-name="home.bookingSpecialty"
+        on-close="home.closeBooking()"
+      ></appointment-booking>
     </main>
     <home-footer
       on-notice="home.showNotice(message, $event)"
@@ -156,6 +163,7 @@
     <script src="/Lib/angular.min.js"></script>
     <script src="/app.js"></script>
     <script src="/components/care.js"></script>
+    <script src="/components/booking.js"></script>
     <script src="/components/reviews.js"></script>
   </body>
 </html>
