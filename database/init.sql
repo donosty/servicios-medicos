@@ -207,15 +207,15 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 INSERT INTO medical_specialties (slug, name, description, icon_path, display_order)
 VALUES
-    ('neurologia', 'Neurología', 'Diagnóstico y atención integral de trastornos del sistema nervioso.', '/assets/icons/atencion.webp', 1),
-    ('traumatologia', 'Traumatología', 'Atención especializada de lesiones traumáticas y del sistema musculoesquelético.', '/assets/icons/atencion.webp', 2),
-    ('ortopedia', 'Ortopedia', 'Tratamiento de huesos, articulaciones y problemas de movimiento.', '/assets/icons/atencion.webp', 3),
+    ('neurologia', 'Neurología', 'Diagnóstico y atención integral de trastornos del sistema nervioso.', '/assets/icons/neurologia.webp', 1),
+    ('traumatologia', 'Traumatología', 'Atención especializada de lesiones traumáticas y del sistema musculoesquelético.', '/assets/icons/traumatologia.webp', 2),
+    ('ortopedia', 'Ortopedia', 'Tratamiento de huesos, articulaciones y problemas de movimiento.', '/assets/icons/ortopedia.webp', 3),
     ('cardiologia', 'Cardiología', 'Prevención, diagnóstico y cuidado integral de tu corazón.', '/assets/icons/cardiologia.webp', 4),
     ('pediatria', 'Pediatría', 'Cuidamos la salud y el desarrollo de niñas y niños.', '/assets/icons/pediatria.webp', 5),
-    ('nutricion', 'Nutrición', 'Acompañamiento personalizado para una alimentación saludable.', '/assets/icons/tecnologia.webp', 6),
-    ('cirugia-maxilofacial', 'Cirugía Maxilofacial', 'Atención quirúrgica de boca, cara, mandíbula y estructuras relacionadas.', '/assets/icons/atencion.webp', 7),
-    ('cirugia-plastica', 'Cirugía Plástica', 'Procedimientos reconstructivos y estéticos con atención especializada.', '/assets/icons/atencion.webp', 8),
-    ('psiquiatria', 'Psiquiatría', 'Evaluación y tratamiento especializado de la salud mental.', '/assets/icons/atencion.webp', 9)
+    ('nutricion', 'Nutrición', 'Acompañamiento personalizado para una alimentación saludable.', '/assets/icons/nutricion.webp', 6),
+    ('cirugia-maxilofacial', 'Cirugía Maxilofacial', 'Atención quirúrgica de boca, cara, mandíbula y estructuras relacionadas.', '/assets/icons/cirugia-maxilofacial.webp', 7),
+    ('cirugia-plastica', 'Cirugía Plástica', 'Procedimientos reconstructivos y estéticos con atención especializada.', '/assets/icons/cirugia-plastica.webp', 8),
+    ('psiquiatria', 'Psiquiatría', 'Evaluación y tratamiento especializado de la salud mental.', '/assets/icons/psiquiatria.webp', 9)
 ON CONFLICT (slug) DO UPDATE
 SET name = EXCLUDED.name,
     description = EXCLUDED.description,

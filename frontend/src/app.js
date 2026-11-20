@@ -57,15 +57,23 @@
           doc.getElementById("notice").close();
         };
 
+        home.returnHome = function () {
+          home.bookingOpen = false;
+          home.closeMenu();
+        };
+
         home.filterBy = function (name) {
+          home.returnHome();
           home.searchText = name;
           home.query = name.trim();
           $timeout(
             () => {
-              doc
-                .getElementById("titulo-especialidades")
-                .focus({ preventScroll: true });
-              doc.getElementById("especialidades").scrollIntoView();
+              const section = doc.getElementById("especialidades");
+              if (section) {
+                const heading = doc.getElementById("titulo-especialidades");
+                (heading || section).focus({ preventScroll: true });
+                section.scrollIntoView();
+              }
             },
             0,
             false,
@@ -94,7 +102,7 @@
         };
 
         home.closeBooking = function () {
-          home.bookingOpen = false;
+          home.returnHome();
           $timeout(
             () => doc.querySelector(".header-actions .book-button").focus(),
             0,
@@ -109,7 +117,7 @@
     ])
     .component("homeFooter", {
       templateUrl: "/components/footer.html",
-      bindings: { onNotice: "&", onSelect: "&" },
+      bindings: { onHome: "&", onNotice: "&", onSelect: "&" },
       controller: [
         "medicalSpecialties",
         function HomeFooterController(specialties) {
