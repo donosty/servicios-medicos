@@ -27,13 +27,26 @@
         Ver todas las especialidades
       </button>
     </p>
-    <div class="care-specialty-grid" ng-if="$ctrl.filtered.length">
+    <div class="care-specialty-carousel" ng-if="$ctrl.filtered.length">
+      <button
+        type="button"
+        class="care-specialty-arrow care-specialty-prev"
+        aria-label="Especialidades anteriores"
+        ng-show="$ctrl.canMoveLeft"
+        ng-click="$ctrl.move(-1)"
+      >
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div
+        class="care-specialty-grid"
+        care-carousel-scroll="$ctrl.updateCarouselState()"
+      >
       <article
         class="care-specialty-card"
         ng-repeat="item in $ctrl.filtered track by item.id"
       >
         <img
-          ng-src="/assets/icons/{{item.id}}.webp"
+          ng-src="{{item.icon || '/assets/icons/' + item.id + '.webp'}}"
           width="110"
           height="110"
           alt=""
@@ -50,6 +63,29 @@
           Agendar cita
         </button>
       </article>
+      </div>
+      <button
+        type="button"
+        class="care-specialty-arrow care-specialty-next"
+        aria-label="Especialidades siguientes"
+        ng-show="$ctrl.canMoveRight"
+        ng-click="$ctrl.move(1)"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+    <div
+      class="care-specialty-dots"
+      ng-if="$ctrl.canMoveLeft || $ctrl.canMoveRight"
+    >
+      <button
+        type="button"
+        ng-repeat="item in $ctrl.filtered track by item.id"
+        ng-class="{'is-active': $ctrl.currentPage === $index}"
+        ng-click="$ctrl.goTo($index)"
+        ng-attr-aria-label="Ir a {{item.name}}"
+        ng-attr-aria-current="{{$ctrl.currentPage === $index ? 'true' : undefined}}"
+      ></button>
     </div>
     <div class="care-empty" ng-if="!$ctrl.filtered.length">
       <p>No encontramos especialidades que coincidan con «{{$ctrl.query}}».</p>

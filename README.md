@@ -104,6 +104,17 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --forc
 El frontend de desarrollo utiliza el puerto `4200`; el frontend de producción
 utiliza NGINX en el puerto `80`.
 
+### API REST de especialidades
+
+La relación inicial entre backend y frontend expone las especialidades activas
+desde PostgreSQL mediante:
+
+- `GET /api/specialties`
+
+El endpoint utiliza Sequelize y responde las especialidades ordenadas por su
+posición configurada. El frontend carga este recurso al iniciar la aplicación
+para construir dinámicamente la sección «Especialidades Médicas».
+
 ## Entorno de producción
 
 Construye las imágenes y despliega la aplicación:
