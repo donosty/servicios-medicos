@@ -2,7 +2,7 @@
 
 Aplicación full stack contenerizada con:
 
-- **Backend:** JavaScript CommonJS, Node.js 20, Express y PostgreSQL.
+- **Backend:** JavaScript ECMAScript 6, Node.js 20, Express y PostgreSQL.
 - **Frontend:** AngularJS 1.8.2 servido por NGINX.
 - **Estilos:** Bootstrap 5.
 - **Orquestación:** Docker Compose.
@@ -140,6 +140,25 @@ docker compose down
 
 El volumen Docker `postgres_data` conserva la información de PostgreSQL
 entre reinicios y recreaciones de contenedores.
+
+## Base de datos
+
+El esquema PostgreSQL y los datos iniciales se encuentran en
+`database/init.sql`. Docker monta este archivo en
+`/docker-entrypoint-initdb.d/01-init.sql`, por lo que PostgreSQL lo ejecuta
+automáticamente la primera vez que crea el volumen `postgres_data`.
+
+El script crea las especialidades, médicos y sus relaciones; los horarios
+recurrentes; los estados de cita; beneficios y testimonios utilizados por el
+frontend. También incluye tablas normalizadas para pacientes y citas.
+
+Para inicializar nuevamente la base de datos desde el archivo SQL, elimina
+el volumen de PostgreSQL y vuelve a levantar los contenedores:
+
+```sh
+docker compose down -v
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
 
 ## Comandos útiles
 
