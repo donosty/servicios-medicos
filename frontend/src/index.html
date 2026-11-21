@@ -27,7 +27,12 @@
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
       <div class="home-wrap header-inner">
-        <a class="brand-link" href="#inicio" aria-label="MEDICOM, inicio">
+        <a
+          class="brand-link"
+          href="#inicio"
+          aria-label="MEDICOM, inicio"
+          ng-click="home.returnHome()"
+        >
           <img
             src="/assets/medicom.webp"
             alt="MEDICOM"
@@ -42,10 +47,14 @@
           ng-class="{'is-open': home.menuOpen}"
           ng-keydown="home.handleMenuKey($event)"
         >
-          <a href="#inicio" aria-current="page" ng-click="home.closeMenu()"
-            >Inicio</a
+          <a
+            href="#inicio"
+            ng-attr-aria-current="{{home.bookingOpen ? undefined : 'page'}}"
+            ng-click="home.returnHome()"
           >
-          <a href="#especialidades" ng-click="home.closeMenu()"
+            Inicio
+          </a>
+          <a href="#especialidades" ng-click="home.returnHome()"
             >Especialidades</a
           >
           <button
@@ -126,6 +135,8 @@
         </div>
       </section>
       <specialty-list
+        id="especialidades"
+        tabindex="-1"
         ng-if="!home.bookingOpen"
         query="home.query"
         on-book="home.openBooking(name, $event)"
@@ -140,6 +151,7 @@
       ></appointment-booking>
     </main>
     <home-footer
+      on-home="home.returnHome()"
       on-notice="home.showNotice(message, $event)"
       on-select="home.filterBy(name)"
     ></home-footer>

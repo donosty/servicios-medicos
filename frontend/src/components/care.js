@@ -51,8 +51,11 @@
               });
             };
             element.on("scroll", handler);
+            const resizeObserver = new ResizeObserver(handler);
+            resizeObserver.observe(element[0]);
             scope.$on("$destroy", function () {
               element.off("scroll", handler);
+              resizeObserver.disconnect();
             });
           },
         };
@@ -80,11 +83,11 @@
       templateUrl: "/components/specialties.html",
       bindings: { query: "<", onBook: "&", onClear: "&" },
       controller: [
-        "$document",
+        "$element",
         "$scope",
         "$timeout",
         "medicalSpecialties",
-        function SpecialtyListController($document, $scope, $timeout, medicalSpecialties) {
+        function SpecialtyListController($element, $scope, $timeout, medicalSpecialties) {
         const ctrl = this;
         ctrl.canMoveLeft = false;
         ctrl.canMoveRight = false;
@@ -95,10 +98,9 @@
           ctrl.filtered = medicalSpecialties.filter((item) =>
             normalizeName(item.name).includes(term),
           );
-          $timeout(ctrl.updateCarouselState, 0, false);
+          $timeout(ctrl.updateCarouselState);
         }
 
-        ctrl.$onInit = applyFilter;
         ctrl.$onChanges = applyFilter;
         $scope.$watchCollection(
           function () { return medicalSpecialties; },
@@ -110,16 +112,20 @@
         };
 
         ctrl.move = function (direction) {
-          const grid = $document[0].querySelector(".care-specialty-grid");
+          const grid = $element[0].querySelector(".care-specialty-grid");
           if (!grid) return;
           const distance = grid.clientWidth * 0.75 * direction;
           grid.scrollBy({ left: distance, behavior: "smooth" });
-          $timeout(ctrl.updateCarouselState, 350, false);
         };
 
         ctrl.updateCarouselState = function () {
-          const grid = $document[0].querySelector(".care-specialty-grid");
-          if (!grid) return;
+          const grid = $element[0].querySelector(".care-specialty-grid");
+          if (!grid) {
+            ctrl.canMoveLeft = false;
+            ctrl.canMoveRight = false;
+            ctrl.currentPage = 0;
+            return;
+          }
           ctrl.canMoveLeft = grid.scrollLeft > 4;
           ctrl.canMoveRight =
             grid.scrollLeft + grid.clientWidth < grid.scrollWidth - 4;
@@ -141,7 +147,7 @@
         };
 
         ctrl.goTo = function (index) {
-          const grid = $document[0].querySelector(".care-specialty-grid");
+          const grid = $element[0].querySelector(".care-specialty-grid");
           if (!grid) return;
           ctrl.currentPage = index;
           const card = grid.querySelectorAll(".care-specialty-card")[index];

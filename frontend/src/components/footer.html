@@ -4,6 +4,7 @@
       <a
         class="brand-link"
         href="#inicio"
+        ng-click="$ctrl.onHome()"
         aria-label="MEDICOM, volver al inicio"
       >
         <img
@@ -20,8 +21,8 @@
     </div>
     <nav aria-label="Enlaces rápidos">
       <h2>Enlaces rápidos</h2>
-      <a href="#inicio">Inicio</a>
-      <a href="#especialidades">Especialidades</a>
+      <a href="#inicio" ng-click="$ctrl.onHome()">Inicio</a>
+      <a href="#especialidades" ng-click="$ctrl.onHome()">Especialidades</a>
       <button
         type="button"
         ng-click="$ctrl.onNotice({message: 'El directorio de médicos estará disponible próximamente.', $event: $event})"
