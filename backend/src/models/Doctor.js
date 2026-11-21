@@ -2,17 +2,17 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
 const Doctor = sequelize.define(
-  'Doctor',
+  'Medico',
   {
-    doctorId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'doctor_id' },
-    professionalTitle: { type: DataTypes.TEXT, allowNull: false, field: 'professional_title' },
-    firstName: { type: DataTypes.TEXT, allowNull: false, field: 'first_name' },
-    lastName: { type: DataTypes.TEXT, allowNull: false, field: 'last_name' },
-    description: { type: DataTypes.TEXT, allowNull: false },
-    imagePath: { type: DataTypes.TEXT, field: 'image_path' },
-    isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, field: 'is_active' },
+    doctorId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'id_medico' },
+    professionalTitle: { type: DataTypes.TEXT, allowNull: false, field: 'titulo_profesional' },
+    firstName: { type: DataTypes.TEXT, allowNull: false, field: 'nombre' },
+    lastName: { type: DataTypes.TEXT, allowNull: false, field: 'apellidos' },
+    description: { type: DataTypes.TEXT, allowNull: false, field: 'descripcion' },
+    imagePath: { type: DataTypes.TEXT, field: 'ruta_imagen' },
+    isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, field: 'esta_activo' },
   },
-  { tableName: 'doctors', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' },
+  { tableName: 'medicos', timestamps: true, createdAt: 'creado_en', updatedAt: 'actualizado_en' },
 );
 
 export default Doctor;

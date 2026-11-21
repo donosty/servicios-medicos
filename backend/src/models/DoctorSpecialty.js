@@ -2,12 +2,12 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
 const DoctorSpecialty = sequelize.define(
-  'DoctorSpecialty',
+  'EspecialidadMedico',
   {
-    doctorId: { type: DataTypes.UUID, primaryKey: true, field: 'doctor_id' },
-    specialtyId: { type: DataTypes.SMALLINT, primaryKey: true, field: 'specialty_id' },
+    doctorId: { type: DataTypes.UUID, primaryKey: true, field: 'id_medico' },
+    specialtyId: { type: DataTypes.SMALLINT, primaryKey: true, field: 'id_especialidad' },
   },
-  { tableName: 'doctor_specialties', timestamps: false },
+  { tableName: 'especialidades_medicos', timestamps: false },
 );
 
 export default DoctorSpecialty;

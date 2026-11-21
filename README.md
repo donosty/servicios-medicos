@@ -155,7 +155,15 @@ entre reinicios y recreaciones de contenedores.
 ## Base de datos
 
 El esquema PostgreSQL y los datos iniciales se encuentran en
-`database/init.sql`. Docker monta este archivo en
+`database/init.sql`. Todas las tablas, columnas, restricciones, índices y
+datos catalogados utilizan nombres en español, incluyendo tablas como
+`especialidades_medicas`, `medicos`, `pacientes`, `citas` y
+`servicios_medicos`.
+
+La tabla `servicios_medicos` incluye los servicios iniciales Urgencias,
+Imagenología, Laboratorio y Medicina General.
+
+Docker monta el archivo SQL en
 `/docker-entrypoint-initdb.d/01-init.sql`, por lo que PostgreSQL lo ejecuta
 automáticamente la primera vez que crea el volumen `postgres_data`.
 
