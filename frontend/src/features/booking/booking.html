@@ -14,8 +14,12 @@
     <div class="booking-layout">
       <div class="booking-main">
         <section class="booking-section" aria-labelledby="especialidad-titulo">
-          <h2 id="especialidad-titulo"><span>1</span> Elige una especialidad</h2>
-          <label class="visually-hidden" for="especialidad-cita">Especialidad</label>
+          <h2 id="especialidad-titulo">
+            <span>1</span> Elige una especialidad
+          </h2>
+          <label class="visually-hidden" for="especialidad-cita"
+            >Especialidad</label
+          >
           <select
             id="especialidad-cita"
             class="booking-select"
@@ -50,7 +54,8 @@
                   ng-click="$ctrl.selectDoctor(doctor)"
                   ng-attr-aria-pressed="{{$ctrl.selectedDoctor.id === doctor.id}}"
                 >
-                  {{$ctrl.selectedDoctor.id === doctor.id ? 'Seleccionado' : 'Seleccionar'}}
+                  {{$ctrl.selectedDoctor.id === doctor.id ? 'Seleccionado' :
+                  'Seleccionar'}}
                 </button>
               </div>
             </article>
@@ -60,7 +65,11 @@
         <section class="booking-section" aria-labelledby="fecha-titulo">
           <h2 id="fecha-titulo"><span>3</span> Selecciona fecha y hora</h2>
           <p class="booking-label">Fecha disponible</p>
-          <div class="date-grid" role="radiogroup" aria-label="Fechas disponibles">
+          <div
+            class="date-grid"
+            role="radiogroup"
+            aria-label="Fechas disponibles"
+          >
             <button
               type="button"
               class="date-option"
@@ -76,7 +85,11 @@
           </div>
 
           <p class="booking-label">Horario disponible</p>
-          <div class="time-grid" role="radiogroup" aria-label="Horarios disponibles">
+          <div
+            class="time-grid"
+            role="radiogroup"
+            aria-label="Horarios disponibles"
+          >
             <button
               type="button"
               ng-repeat="time in $ctrl.availableTimes track by time.value"
