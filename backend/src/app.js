@@ -8,6 +8,7 @@ import specialtyRoutes from './routes/specialtyRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import medicalServiceRoutes from './routes/medicalServiceRoutes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(specialtyRoutes);
 app.use(doctorRoutes);
 app.use(availabilityRoutes);
 app.use(appointmentRoutes);
+app.use(medicalServiceRoutes);
 app.use(errorHandler);
 
 export default app;
