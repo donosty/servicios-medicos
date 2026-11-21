@@ -145,6 +145,9 @@
           </div>
         </div>
       </section>
+      <featured-services
+        ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
+      ></featured-services>
       <specialty-list
         id="especialidades"
         tabindex="-1"
@@ -153,7 +156,6 @@
         on-book="home.openBooking(name, $event)"
         on-clear="home.clearSearch()"
       ></specialty-list>
-      <div id="servicios"></div>
       <patient-reviews
         ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
       ></patient-reviews>
