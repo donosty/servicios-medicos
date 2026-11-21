@@ -31,6 +31,7 @@ export const createAppointment = async (data) =>
       where: { doctorId: data.doctorId, isActive: true },
       include: [{
         model: MedicalSpecialty,
+        as: 'especialidades',
         where: { specialtyId: specialty.specialtyId },
         through: { attributes: [] },
         required: true,
@@ -47,7 +48,7 @@ export const createAppointment = async (data) =>
     }
 
     const confirmedStatus = await AppointmentStatus.findOne({
-      where: { statusCode: 'confirmed' },
+      where: { statusCode: 'confirmada' },
       transaction,
     });
     const existing = await Appointment.findOne({

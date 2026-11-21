@@ -2,14 +2,14 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
 const Patient = sequelize.define(
-  'Patient',
+  'Paciente',
   {
-    patientId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'patient_id' },
-    fullName: { type: DataTypes.TEXT, allowNull: false, field: 'full_name' },
-    phone: { type: DataTypes.TEXT, allowNull: false },
-    email: { type: DataTypes.TEXT, allowNull: false },
+    patientId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'id_paciente' },
+    fullName: { type: DataTypes.TEXT, allowNull: false, field: 'nombre_completo' },
+    phone: { type: DataTypes.TEXT, allowNull: false, field: 'telefono' },
+    email: { type: DataTypes.TEXT, allowNull: false, field: 'correo' },
   },
-  { tableName: 'patients', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' },
+  { tableName: 'pacientes', timestamps: true, createdAt: 'creado_en', updatedAt: 'actualizado_en' },
 );
 
 export default Patient;

@@ -2,18 +2,18 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
 const Appointment = sequelize.define(
-  'Appointment',
+  'Cita',
   {
-    appointmentId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'appointment_id' },
-    folio: { type: DataTypes.TEXT, allowNull: false, unique: true },
-    patientId: { type: DataTypes.UUID, allowNull: false, field: 'patient_id' },
-    doctorId: { type: DataTypes.UUID, allowNull: false, field: 'doctor_id' },
-    specialtyId: { type: DataTypes.SMALLINT, allowNull: false, field: 'specialty_id' },
-    startAt: { type: DataTypes.DATE, allowNull: false, field: 'start_at' },
-    endAt: { type: DataTypes.DATE, allowNull: false, field: 'end_at' },
-    statusId: { type: DataTypes.SMALLINT, allowNull: false, field: 'status_id' },
+    appointmentId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'id_cita' },
+    folio: { type: DataTypes.TEXT, allowNull: false, unique: true, field: 'folio' },
+    patientId: { type: DataTypes.UUID, allowNull: false, field: 'id_paciente' },
+    doctorId: { type: DataTypes.UUID, allowNull: false, field: 'id_medico' },
+    specialtyId: { type: DataTypes.SMALLINT, allowNull: false, field: 'id_especialidad' },
+    startAt: { type: DataTypes.DATE, allowNull: false, field: 'inicia_en' },
+    endAt: { type: DataTypes.DATE, allowNull: false, field: 'termina_en' },
+    statusId: { type: DataTypes.SMALLINT, allowNull: false, field: 'id_estado' },
   },
-  { tableName: 'appointments', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' },
+  { tableName: 'citas', timestamps: true, createdAt: 'creado_en', updatedAt: 'actualizado_en' },
 );
 
 export default Appointment;
