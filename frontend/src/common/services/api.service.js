@@ -7,6 +7,9 @@
       "$http",
       function ApiService($http) {
         return {
+          getMedicalServices: function () {
+            return $http.get("/api/services");
+          },
           getSpecialties: function () {
             return $http.get("/api/specialties");
           },

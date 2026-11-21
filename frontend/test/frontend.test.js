@@ -9,6 +9,8 @@ test("index carga el módulo AngularJS desde la nueva estructura", async () => {
   assert.match(html, /\/app\/app\.module\.js/);
   assert.match(html, /\/common\/services\/api\.service\.js/);
   assert.match(html, /\/features\/booking\/booking\.component\.js/);
+  assert.match(html, /<featured-services/);
+  assert.match(html, /featured-services\.css/);
 });
 
 test("componentes principales siguen registrados", async () => {
@@ -19,6 +21,7 @@ test("componentes principales siguen registrados", async () => {
     "features/booking/booking.component.js",
     "features/care/care-benefits.component.js",
     "features/reviews/reviews.component.js",
+    "features/services/featured-services.component.js",
   ];
 
   for (const file of files) {
@@ -33,6 +36,7 @@ test("servicio API contiene las operaciones existentes", async () => {
     "utf8",
   );
   for (const endpoint of [
+    "getMedicalServices",
     "getSpecialties",
     "getDoctors",
     "getAvailability",

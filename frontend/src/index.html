@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="/features/specialties/care.css" />
     <link rel="stylesheet" href="/features/booking/booking.css" />
     <link rel="stylesheet" href="/features/reviews/reviews.css" />
+    <link rel="stylesheet" href="/features/services/featured-services.css" />
   </head>
   <body class="medicom-home" id="inicio" ng-controller="HomeController as home">
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -134,6 +135,7 @@
           </div>
         </div>
       </section>
+      <featured-services ng-if="!home.bookingOpen"></featured-services>
       <specialty-list
         id="especialidades"
         tabindex="-1"
@@ -185,5 +187,6 @@
     <script src="/features/booking/booking.component.js"></script>
     <script src="/features/care/care-benefits.component.js"></script>
     <script src="/features/reviews/reviews.component.js"></script>
+    <script src="/features/services/featured-services.component.js"></script>
   </body>
 </html>

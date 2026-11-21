@@ -32,6 +32,13 @@ test('API principal conserva su respuesta', async () => {
   assert.deepEqual(await response.json(), { message: 'Servicios Médicos API' });
 });
 
+test('API expone los servicios médicos activos', async () => {
+  const response = await fetch(`${baseUrl}/api/services`);
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.ok(Array.isArray(data.services));
+});
+
 test('availability valida doctorId y date antes de consultar la base', async () => {
   const response = await fetch(`${baseUrl}/api/availability`);
   assert.equal(response.status, 400);
