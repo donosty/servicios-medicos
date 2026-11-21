@@ -394,6 +394,8 @@ SET nombre = EXCLUDED.nombre,
     orden_visualizacion = EXCLUDED.orden_visualizacion;
 
 \ir migrations/precios-servicios.sql
+\ir migrations/catalogo-servicios.sql
+\ir migrations/horarios-servicios.sql
 
 INSERT INTO roles_usuario (codigo, nombre)
 VALUES

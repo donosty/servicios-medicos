@@ -8,6 +8,7 @@ import AppointmentStatus from './AppointmentStatus.js';
 import Appointment from './Appointment.js';
 import AppointmentRegistration from './AppointmentRegistration.js';
 import ServicioMedico from './ServicioMedico.js';
+import ServiceSpecialty from './ServiceSpecialty.js';
 import RolUsuario from './RolUsuario.js';
 import Usuario from './Usuario.js';
 import SesionUsuario from './SesionUsuario.js';
@@ -23,6 +24,12 @@ MedicalSpecialty.belongsToMany(Doctor, {
   through: DoctorSpecialty,
   foreignKey: 'specialtyId',
   otherKey: 'doctorId',
+});
+ServicioMedico.belongsToMany(MedicalSpecialty, {
+  as: 'especialidades',
+  through: ServiceSpecialty,
+  foreignKey: 'serviceId',
+  otherKey: 'specialtyId',
 });
 Doctor.hasMany(DoctorAvailabilitySlot, {
   as: 'horarios',

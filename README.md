@@ -179,9 +179,9 @@ datos catalogados utilizan nombres en español, incluyendo tablas como
 `especialidades_medicas`, `medicos`, `pacientes`, `citas` y
 `servicios_medicos`.
 
-La tabla `servicios_medicos` almacena el precio de cada servicio en MXN. Los
-precios iniciales son ficticios y se muestran en el catálogo y en los
-servicios destacados.
+La tabla `servicios_medicos` almacena las fichas del catálogo y los precios
+ficticios en MXN. La tabla `servicios_especialidades` relaciona los servicios
+con las especialidades cuyos horarios se consultan para mostrar disponibilidad.
 
 Docker monta el archivo SQL en
 `/docker-entrypoint-initdb.d/01-init.sql`, por lo que PostgreSQL lo ejecuta
@@ -192,6 +192,21 @@ de forma directa para conservar las citas, cuentas y precios existentes:
 
 ```sh
 docker compose exec -T db sh -c 'psql --single-transaction -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -' < database/migrations/precios-servicios.sql
+```
+
+Para incorporar el catálogo a un volumen existente, aplica su migración
+después de la de precios:
+
+```sh
+docker compose exec -T db sh -c 'psql --single-transaction -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -' < database/migrations/catalogo-servicios.sql
+```
+
+Para añadir los especialistas y horarios de prueba de Medicina General e
+Imagenología a un volumen existente, ejecuta esta migración después del
+catálogo.
+
+```sh
+docker compose exec -T db sh -c 'psql --single-transaction -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -' < database/migrations/horarios-servicios.sql
 ```
 
 El script crea las especialidades, médicos y sus relaciones; los horarios

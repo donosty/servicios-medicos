@@ -4,10 +4,10 @@
       <p>Atención integral</p>
       <h2 id="titulo-servicios">Servicios destacados</h2>
     </div>
-    <div class="featured-services-grid" ng-if="$ctrl.catalog.featured.length">
+    <div class="featured-services-grid" ng-if="$ctrl.services.length">
       <article
         class="featured-service-card"
-        ng-repeat="service in $ctrl.catalog.featured track by service.id"
+        ng-repeat="service in $ctrl.services track by service.id"
       >
         <span class="featured-service-mark" aria-hidden="true">
           <svg width="28" height="28">
