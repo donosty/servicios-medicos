@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iniciar sesión | MEDICOM</title>
+    <link rel="icon" href="/assets/medicom-icon.webp" type="image/webp" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/features/auth/auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-card" aria-labelledby="login-titulo">
+        <img class="auth-brand" src="/assets/medicom.webp" alt="MEDICOM" />
+        <h1 id="login-titulo">Iniciar sesión</h1>
+        <p class="auth-intro">Accede a tu cuenta de MEDICOM.</p>
+        <form id="login-form">
+          <div class="auth-field">
+            <label for="correo">Correo electrónico</label>
+            <input id="correo" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="auth-field">
+            <label for="contrasena">Contraseña</label>
+            <input id="contrasena" name="password" type="password" autocomplete="current-password" minlength="8" required />
+          </div>
+          <button class="auth-submit" type="submit">Entrar</button>
+          <p id="login-message" class="auth-message" role="alert"></p>
+        </form>
+        <div class="auth-links">
+          <a href="/register.html">Crear una cuenta</a>
+        </div>
+      </section>
+    </main>
+    <script src="/features/auth/login.js"></script>
+  </body>
+</html>

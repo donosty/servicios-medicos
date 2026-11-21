@@ -32,17 +32,21 @@ test('API principal conserva su respuesta', async () => {
   assert.deepEqual(await response.json(), { message: 'Servicios Médicos API' });
 });
 
-test('API expone los servicios médicos activos', async () => {
+test('API protege los servicios médicos sin sesión', async () => {
   const response = await fetch(`${baseUrl}/api/services`);
-  assert.equal(response.status, 200);
-  const data = await response.json();
-  assert.ok(Array.isArray(data.services));
+  assert.equal(response.status, 401);
 });
 
-test('availability valida doctorId y date antes de consultar la base', async () => {
+test('availability requiere sesión antes de validar parámetros', async () => {
   const response = await fetch(`${baseUrl}/api/availability`);
-  assert.equal(response.status, 400);
-  assert.deepEqual(await response.json(), { message: 'doctorId y date son requeridos.' });
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { message: 'Inicia sesión para continuar.' });
+});
+
+test('perfil requiere sesión', async () => {
+  const response = await fetch(`${baseUrl}/api/profile`);
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { message: 'Inicia sesión para continuar.' });
 });
 
 test('appointment schema valida y normaliza datos', () => {
@@ -51,19 +55,22 @@ test('appointment schema valida y normaliza datos', () => {
     specialty: 'neurologia',
     date: '2026-12-10',
     time: '09:30',
-    patient: {
-      name: '  Ana Pérez  ',
-      phone: ' 5551234567 ',
-      email: '  ANA@EXAMPLE.COM ',
-    },
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.data.patient.name, 'Ana Pérez');
-  assert.equal(result.data.patient.email, 'ANA@EXAMPLE.COM');
 });
 
 test('appointment schema rechaza datos incompletos', () => {
   const result = appointmentSchema.safeParse({ patient: {} });
   assert.equal(result.success, false);
+});
+
+test('appointment schema acepta cita sin datos personales repetidos', () => {
+  const result = appointmentSchema.safeParse({
+    doctorId: '1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10',
+    specialty: 'neurologia',
+    date: '2026-12-10',
+    time: '09:30',
+  });
+  assert.equal(result.success, true);
 });

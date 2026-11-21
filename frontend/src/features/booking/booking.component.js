@@ -18,6 +18,7 @@
           const ctrl = this;
           ctrl.specialties = medicalSpecialties;
           ctrl.patient = {};
+          ctrl.profile = {};
           ctrl.selectedDoctor = {};
           ctrl.selectedDate = {};
           ctrl.selectedTime = "";
@@ -30,6 +31,19 @@
           ctrl.availableDates = dateUtils.buildAvailableDates();
 
           ctrl.$onInit = function () {
+            api.getProfile()
+              .then(function (response) {
+                ctrl.profile = response.data.profile;
+                ctrl.patient = {
+                  name: ctrl.profile.fullName,
+                  phone: ctrl.profile.phone,
+                  email: ctrl.profile.email,
+                };
+              })
+              .catch(function () {
+                ctrl.profile = {};
+                ctrl.patient = {};
+              });
             const matching = medicalSpecialties.find(function (item) {
               return item.name === ctrl.specialtyName;
             });
@@ -125,9 +139,9 @@
               ctrl.selectedDoctor.id &&
               ctrl.selectedDate.value &&
               ctrl.selectedTime &&
-              ctrl.patient.name &&
-              ctrl.patient.phone &&
-              ctrl.patient.email &&
+              ctrl.profile.fullName &&
+              ctrl.profile.phone &&
+              ctrl.profile.email &&
               (!form || form.$valid)
             );
           };
@@ -142,11 +156,6 @@
               specialty: ctrl.selectedSpecialty,
               date: ctrl.selectedDate.value,
               time: ctrl.selectedTime,
-              patient: {
-                name: ctrl.patient.name,
-                phone: ctrl.patient.phone,
-                email: ctrl.patient.email,
-              },
             })
               .then(function (response) {
                 ctrl.confirmed = true;
@@ -168,12 +177,7 @@
 
           $scope.$watch(
             function () {
-              return [
-                ctrl.selectedTime,
-                ctrl.patient.name,
-                ctrl.patient.phone,
-                ctrl.patient.email,
-              ].join("|");
+              return ctrl.selectedTime;
             },
             function () {
               ctrl.confirmed = false;

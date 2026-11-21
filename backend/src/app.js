@@ -9,6 +9,9 @@ import doctorRoutes from './routes/doctorRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import medicalServiceRoutes from './routes/medicalServiceRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
+import { requireAuth } from './middlewares/authMiddleware.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
@@ -20,11 +23,14 @@ app.use(morgan('combined'));
 
 app.use(healthRoutes);
 app.use(apiRoutes);
+app.use(authRoutes);
+app.use(requireAuth);
 app.use(specialtyRoutes);
 app.use(doctorRoutes);
 app.use(availabilityRoutes);
 app.use(appointmentRoutes);
 app.use(medicalServiceRoutes);
+app.use(profileRoutes);
 app.use(errorHandler);
 
 export default app;

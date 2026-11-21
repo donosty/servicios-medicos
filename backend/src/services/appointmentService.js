@@ -8,6 +8,7 @@ import {
   AppointmentStatus,
   Appointment,
   AppointmentRegistration,
+  Usuario,
 } from '../models/index.js';
 
 const createError = (message, status) => {
@@ -19,8 +20,24 @@ const createError = (message, status) => {
 const generateFolio = (date) =>
   `MED-${date.replaceAll('-', '')}-${randomBytes(4).toString('hex').toUpperCase()}`;
 
-export const createAppointment = async (data) =>
+export const createAppointment = async (data, user) =>
   sequelize.transaction(async (transaction) => {
+    if (!user || !user.userId) {
+      throw createError('Debes iniciar sesión para agendar una cita.', 401);
+    }
+
+    const account = await Usuario.findByPk(user.userId, { transaction });
+    if (!account || !account.isActive) {
+      throw createError('La sesión del usuario ya no es válida.', 401);
+    }
+
+    const patientName = account.fullName;
+    const patientPhone = account.phone;
+    const patientEmail = account.email.toLowerCase();
+    if (!patientPhone) {
+      throw createError('Completa tu teléfono en el perfil antes de agendar.', 422);
+    }
+
     const specialty = await MedicalSpecialty.findOne({
       where: { slug: data.specialty, isActive: true },
       transaction,
@@ -63,17 +80,17 @@ export const createAppointment = async (data) =>
     if (existing) throw createError('El horario seleccionado ya fue registrado.', 409);
 
     const [patient] = await Patient.findOrCreate({
-      where: { email: data.patient.email.toLowerCase() },
+      where: { email: patientEmail },
       defaults: {
-        fullName: data.patient.name,
-        phone: data.patient.phone,
-        email: data.patient.email.toLowerCase(),
+        fullName: patientName,
+        phone: patientPhone,
+        email: patientEmail,
       },
       transaction,
     });
-    if (patient.fullName !== data.patient.name || patient.phone !== data.patient.phone) {
+    if (patient.fullName !== patientName || patient.phone !== patientPhone || patient.email !== patientEmail) {
       await patient.update(
-        { fullName: data.patient.name, phone: data.patient.phone },
+        { fullName: patientName, phone: patientPhone, email: patientEmail },
         { transaction },
       );
     }
@@ -84,6 +101,7 @@ export const createAppointment = async (data) =>
       try {
         appointment = await Appointment.create({
           folio: generateFolio(data.date),
+          userId: user.userId,
           patientId: patient.patientId,
           doctorId: doctor.doctorId,
           specialtyId: specialty.specialtyId,
@@ -105,9 +123,9 @@ export const createAppointment = async (data) =>
       folio: appointment.folio,
       specialtyName: specialty.name,
       doctorName: `${doctor.professionalTitle} ${doctor.firstName} ${doctor.lastName}`,
-      patientName: data.patient.name,
-      patientPhone: data.patient.phone,
-      patientEmail: data.patient.email.toLowerCase(),
+      patientName,
+      patientPhone,
+      patientEmail,
       appointmentDate: data.date,
       appointmentTime: data.time,
     }, { transaction });

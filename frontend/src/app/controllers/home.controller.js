@@ -4,7 +4,9 @@
   angular.module("serviciosMedicosApp").controller("HomeController", [
     "$document",
     "$timeout",
-    function HomeController($document, $timeout) {
+      "api",
+      "$window",
+      function HomeController($document, $timeout, api, $window) {
       const home = this;
       const doc = $document[0];
 
@@ -119,6 +121,12 @@
 
       home.clearSearch = function () {
         home.filterBy("");
+      };
+
+      home.logout = function () {
+        api.logout().finally(function () {
+          $window.location.replace("/login.html");
+        });
       };
 
       home.openServices = function () {

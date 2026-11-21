@@ -349,3 +349,19 @@
     padding: 16px 12px;
   }
 }
+
+.booking-profile-data {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  border: 1px solid rgba(0, 159, 217, 0.16);
+  border-radius: 12px;
+  background: rgba(244, 249, 252, 0.82);
+  color: var(--slate);
+  padding: 16px;
+}
+
+.booking-profile-data strong {
+  color: var(--navy);
+  margin-top: 6px;
+}

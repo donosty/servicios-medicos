@@ -88,6 +88,20 @@ El código de `backend/` y `frontend/` se monta como volumen durante el
 desarrollo. Los cambios se reflejan dentro de los contenedores sin instalar
 dependencias en el host.
 
+### Inicio de sesión y registro
+
+Las cuentas consumidor se crean desde `http://localhost:4200/register.html`.
+El inicio de sesión está disponible en `http://localhost:4200/login.html`.
+Las sesiones se mantienen mediante una cookie HttpOnly y pueden durar hasta
+siete días.
+
+La base de datos crea el usuario administrador inicial:
+
+- Correo: `admin@medicom.com`
+- Contraseña: `Admin123!`
+
+Cambia esta contraseña antes de desplegar la aplicación en producción.
+
 Detén el entorno de desarrollo con:
 
 ```sh

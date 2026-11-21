@@ -11,6 +11,7 @@ test("index carga el módulo AngularJS desde la nueva estructura", async () => {
   assert.match(html, /\/features\/booking\/booking\.component\.js/);
   assert.match(html, /<featured-services/);
   assert.match(html, /featured-services\.css/);
+  assert.match(html, /auth\.guard\.js/);
 });
 
 test("componentes principales siguen registrados", async () => {
@@ -44,4 +45,18 @@ test("servicio API contiene las operaciones existentes", async () => {
   ]) {
     assert.match(source, new RegExp(endpoint));
   }
+});
+
+test("perfil incluye datos editables y citas separadas", async () => {
+  const html = await readFile(new URL("profile.html", sourcePath), "utf8");
+  assert.match(html, /id="profile-form"/);
+  assert.match(html, /Agendadas/);
+  assert.match(html, /Completadas/);
+
+  const script = await readFile(
+    new URL("features/profile/profile.js", sourcePath),
+    "utf8",
+  );
+  assert.match(script, /\/api\/profile/);
+  assert.match(script, /\/api\/profile\/appointments/);
 });
