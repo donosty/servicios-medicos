@@ -14,6 +14,9 @@
         home.menuOpen = false;
         home.bookingOpen = false;
         home.bookingSpecialty = "";
+        home.servicesOpen = false;
+        home.blogOpen = false;
+        home.aboutOpen = false;
 
         home.toggleMenu = function () {
           home.menuOpen = !home.menuOpen;
@@ -59,6 +62,9 @@
 
         home.returnHome = function () {
           home.bookingOpen = false;
+          home.servicesOpen = false;
+          home.blogOpen = false;
+          home.aboutOpen = false;
           home.closeMenu();
         };
 
@@ -86,6 +92,9 @@
 
         home.openBooking = function (name, event) {
           home.bookingOpen = true;
+          home.servicesOpen = false;
+          home.blogOpen = false;
+          home.aboutOpen = false;
           home.bookingSpecialty = name || "";
           home.closeMenu();
           $timeout(
@@ -113,11 +122,75 @@
         home.clearSearch = function () {
           home.filterBy("");
         };
+
+        home.openServices = function () {
+          home.bookingOpen = false;
+          home.servicesOpen = true;
+          home.blogOpen = false;
+          home.aboutOpen = false;
+          home.closeMenu();
+          $timeout(
+            function () {
+              const title = doc.getElementById("servicios-medicos-titulo");
+              if (title) {
+                title.focus({ preventScroll: true });
+              }
+              doc.getElementById("contenido").scrollIntoView();
+            },
+            0,
+            false,
+          );
+        };
+
+        home.openBlog = function () {
+          home.bookingOpen = false;
+          home.servicesOpen = false;
+          home.blogOpen = true;
+          home.aboutOpen = false;
+          home.closeMenu();
+          $timeout(
+            function () {
+              const title = doc.getElementById("blog-titulo");
+              if (title) {
+                title.focus({ preventScroll: true });
+              }
+              doc.getElementById("contenido").scrollIntoView();
+            },
+            0,
+            false,
+          );
+        };
+
+        home.openAbout = function () {
+          home.bookingOpen = false;
+          home.servicesOpen = false;
+          home.blogOpen = false;
+          home.aboutOpen = true;
+          home.closeMenu();
+          $timeout(
+            function () {
+              const title = doc.getElementById("nosotros-titulo");
+              if (title) {
+                title.focus({ preventScroll: true });
+              }
+              doc.getElementById("contenido").scrollIntoView();
+            },
+            0,
+            false,
+          );
+        };
       },
     ])
     .component("homeFooter", {
       templateUrl: "/components/footer.html",
-      bindings: { onHome: "&", onNotice: "&", onSelect: "&" },
+      bindings: {
+        onHome: "&",
+        onNotice: "&",
+        onSelect: "&",
+        onServices: "&",
+        onBlog: "&",
+        onAbout: "&",
+      },
       controller: [
         "medicalSpecialties",
         function HomeFooterController(specialties) {

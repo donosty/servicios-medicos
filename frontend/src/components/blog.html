@@ -1,0 +1,175 @@
+<section class="medical-blog" aria-labelledby="blog-titulo">
+  <div class="home-wrap blog-shell">
+    <button type="button" class="blog-back" ng-click="$ctrl.onClose()">
+      <span aria-hidden="true">←</span> Volver al inicio
+    </button>
+
+    <div class="blog-hero">
+      <div class="blog-hero-copy">
+        <p class="blog-eyebrow">Actualidad médica &amp; artículos clínicos</p>
+        <h1 id="blog-titulo">
+          Consejos y guías médicas
+          <span>para tu bienestar integral</span>
+        </h1>
+        <p>
+          Artículos y recomendaciones clínicas redactados por nuestros
+          especialistas certificados para cuidar la salud de toda la familia en
+          cada etapa de la vida.
+        </p>
+      </div>
+
+      <div class="blog-hero-tools">
+        <div class="blog-credentials">
+          <article>
+            <span aria-hidden="true">ⓘ</span
+            ><strong>Certificación CSQ / Rigor Médico</strong>
+          </article>
+          <article>
+            <span aria-hidden="true">ⓘ</span
+            ><strong>Actualización 2026 / Contenido válido</strong>
+          </article>
+        </div>
+        <label class="blog-search">
+          <span class="visually-hidden">Buscar artículos</span>
+          <input
+            type="search"
+            ng-model="$ctrl.searchText"
+            ng-change="$ctrl.filterArticles()"
+            placeholder="Buscar por síntoma, afección o especialidad..."
+          />
+          <button type="button" aria-label="Buscar">
+            <span aria-hidden="true">→</span>
+          </button>
+        </label>
+        <div class="blog-categories" aria-label="Categorías">
+          <button
+            type="button"
+            ng-repeat="category in $ctrl.categories track by category"
+            ng-class="{'is-active': $ctrl.selectedCategory === category}"
+            ng-click="$ctrl.selectCategory(category)"
+          >
+            {{category}}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="blog-feature-grid">
+      <article class="blog-featured">
+        <div class="featured-meta">
+          <span class="featured-badge">Destacado de la semana</span>
+          <span class="featured-topic">{{ $ctrl.featured.category }}</span>
+          <span class="featured-time"
+            >◷ Tiempo estimado: {{ $ctrl.featured.minutes }} min</span
+          >
+        </div>
+        <h2>{{ $ctrl.featured.title }}</h2>
+        <p>{{ $ctrl.featured.summary }}</p>
+
+        <div class="featured-highlights">
+          <div>
+            <span aria-hidden="true">⌁</span>
+            <div>
+              <strong>Dato clínico</strong>
+              <p>{{ $ctrl.featured.fact }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured-author">
+          <div class="author-avatar">{{ $ctrl.featured.authorInitials }}</div>
+          <div>
+            <strong>{{ $ctrl.featured.author }}</strong
+            ><span>{{ $ctrl.featured.authorRole }}</span>
+          </div>
+          <button type="button" ng-click="$ctrl.openArticle($ctrl.featured)">
+            Leer artículo <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+
+      <aside class="blog-side-list">
+        <article
+          ng-repeat="article in $ctrl.sideArticles track by article.id"
+          ng-click="$ctrl.openArticle(article)"
+        >
+          <span class="side-icon" aria-hidden="true">{{article.icon}}</span>
+          <div>
+            <span class="side-topic">{{article.category}}</span>
+            <h3>{{article.title}}</h3>
+            <p>{{article.summary}}</p>
+          </div>
+          <button type="button" aria-label="Leer artículo: {{article.title}}">
+            ↗
+          </button>
+        </article>
+      </aside>
+    </div>
+
+    <div class="blog-stats" aria-label="Indicadores del blog">
+      <div><strong>+50</strong><span>Artículos médicos publicados</span></div>
+      <div><strong>+25</strong><span>Especialistas contribuyendo</span></div>
+      <div><strong>100%</strong><span>Acceso gratuito a contenidos</span></div>
+      <div>
+        <strong>24/7</strong><span>Actualización y revisión constante</span>
+      </div>
+    </div>
+
+    <div class="blog-guides-heading">
+      <div>
+        <p>Recursos prácticos</p>
+        <h2>Guías Clínicas para Tu Día a Día</h2>
+        <span
+          >Aprende a identificar señales de alerta tempranas y toma decisiones
+          informadas con ayudas por especialistas.</span
+        >
+      </div>
+      <button type="button" ng-click="$ctrl.showAll()">
+        Ver todas las guías →
+      </button>
+    </div>
+
+    <div class="blog-guides-grid">
+      <article ng-repeat="article in $ctrl.visibleArticles track by article.id">
+        <div class="guide-meta">
+          <span>{{article.categoryLabel}}</span>
+          <small>◷ Lectura: {{article.minutes}} min</small>
+        </div>
+        <h3>{{article.title}}</h3>
+        <p>{{article.summary}}</p>
+        <div class="guide-author">
+          <div class="author-avatar small">{{article.authorInitials}}</div>
+          <div>
+            <strong>{{article.author}}</strong
+            ><span>{{article.authorRole}}</span>
+          </div>
+          <button type="button" ng-click="$ctrl.openArticle(article)">
+            Leer →
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <aside class="blog-callout">
+      <div>
+        <p>★ Atención médica inmediata</p>
+        <h2>
+          ¿Tienes dudas sobre algún síntoma o necesitas una consulta médica?
+        </h2>
+        <span
+          >Comunícate con nuestro equipo de atención o agenda tu cita con el
+          especialista adecuado en menos de minutos.</span
+        >
+      </div>
+      <div>
+        <button
+          type="button"
+          ng-click="$ctrl.onBook({name: '', $event: $event})"
+        >
+          ▣ Agendar Consulta
+        </button>
+        <a href="tel:5512345678">☎ Llámanos: <strong>55 1234 5678</strong></a>
+      </div>
+    </aside>
+  </div>
+</section>
