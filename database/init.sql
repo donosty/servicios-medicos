@@ -78,6 +78,47 @@ CREATE TABLE IF NOT EXISTS pacientes (
 CREATE UNIQUE INDEX IF NOT EXISTS pacientes_correo_unico
     ON pacientes (lower(correo));
 
+CREATE TABLE IF NOT EXISTS roles_usuario (
+    id_rol SMALLSERIAL PRIMARY KEY,
+    codigo TEXT NOT NULL UNIQUE,
+    nombre TEXT NOT NULL,
+    CONSTRAINT roles_usuario_codigo_formato CHECK (codigo ~ '^[a-z_]+$')
+);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_paciente UUID UNIQUE,
+    nombre_completo TEXT NOT NULL,
+    correo TEXT NOT NULL UNIQUE,
+    telefono TEXT,
+    contrasena_hash TEXT NOT NULL,
+    id_rol SMALLINT NOT NULL,
+    esta_activo BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT usuarios_paciente_fk
+        FOREIGN KEY (id_paciente) REFERENCES pacientes (id_paciente)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT usuarios_rol_fk
+        FOREIGN KEY (id_rol) REFERENCES roles_usuario (id_rol)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT usuarios_nombre_no_vacio CHECK (btrim(nombre_completo) <> ''),
+    CONSTRAINT usuarios_correo_formato
+        CHECK (correo ~* '^[A-Za-z0-9.!#$%&''*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$')
+);
+
+CREATE TABLE IF NOT EXISTS sesiones_usuario (
+    id_sesion UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expira_en TIMESTAMPTZ NOT NULL,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT sesiones_usuario_fk
+        FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS estados_citas (
     id_estado SMALLSERIAL PRIMARY KEY,
     codigo_estado TEXT NOT NULL UNIQUE,
@@ -89,6 +130,7 @@ CREATE TABLE IF NOT EXISTS estados_citas (
 CREATE TABLE IF NOT EXISTS citas (
     id_cita UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     folio TEXT NOT NULL UNIQUE,
+    id_usuario UUID,
     id_paciente UUID NOT NULL,
     id_medico UUID NOT NULL,
     id_especialidad SMALLINT NOT NULL,
@@ -98,6 +140,9 @@ CREATE TABLE IF NOT EXISTS citas (
     notas TEXT,
     creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT citas_usuario_fk
+        FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT citas_paciente_fk
         FOREIGN KEY (id_paciente) REFERENCES pacientes (id_paciente)
         ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -109,6 +154,24 @@ CREATE TABLE IF NOT EXISTS citas (
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT citas_horario_valido CHECK (termina_en > inicia_en)
 );
+
+ALTER TABLE citas
+    ADD COLUMN IF NOT EXISTS id_usuario UUID;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'citas_usuario_fk'
+    ) THEN
+        ALTER TABLE citas
+            ADD CONSTRAINT citas_usuario_fk
+            FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+            ON UPDATE CASCADE ON DELETE SET NULL;
+    END IF;
+END;
+$$;
 
 CREATE TABLE IF NOT EXISTS registros_citas (
     id_registro UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -199,6 +262,16 @@ FOR EACH ROW EXECUTE FUNCTION establecer_actualizado_en();
 DROP TRIGGER IF EXISTS citas_establecer_actualizado_en ON citas;
 CREATE TRIGGER citas_establecer_actualizado_en
 BEFORE UPDATE ON citas
+FOR EACH ROW EXECUTE FUNCTION establecer_actualizado_en();
+
+DROP TRIGGER IF EXISTS usuarios_establecer_actualizado_en ON usuarios;
+CREATE TRIGGER usuarios_establecer_actualizado_en
+BEFORE UPDATE ON usuarios
+FOR EACH ROW EXECUTE FUNCTION establecer_actualizado_en();
+
+DROP TRIGGER IF EXISTS sesiones_establecer_actualizado_en ON sesiones_usuario;
+CREATE TRIGGER sesiones_establecer_actualizado_en
+BEFORE UPDATE ON sesiones_usuario
 FOR EACH ROW EXECUTE FUNCTION establecer_actualizado_en();
 
 INSERT INTO especialidades_medicas (clave, nombre, descripcion, ruta_icono, orden_visualizacion)
@@ -319,5 +392,29 @@ SET nombre = EXCLUDED.nombre,
     descripcion = EXCLUDED.descripcion,
     ruta_icono = EXCLUDED.ruta_icono,
     orden_visualizacion = EXCLUDED.orden_visualizacion;
+
+INSERT INTO roles_usuario (codigo, nombre)
+VALUES
+    ('consumidor', 'Consumidor'),
+    ('administrador', 'Administrador')
+ON CONFLICT (codigo) DO UPDATE
+SET nombre = EXCLUDED.nombre;
+
+INSERT INTO usuarios (
+    nombre_completo,
+    correo,
+    telefono,
+    contrasena_hash,
+    id_rol
+)
+SELECT
+    'Administrador MEDICOM',
+    'admin@medicom.com',
+    NULL,
+    crypt('Admin123!', gen_salt('bf', 12)),
+    id_rol
+FROM roles_usuario
+WHERE codigo = 'administrador'
+ON CONFLICT (correo) DO NOTHING;
 
 COMMIT;

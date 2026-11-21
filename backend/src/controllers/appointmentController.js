@@ -11,7 +11,7 @@ export const createAppointmentController = async (request, response, next) => {
       });
     }
 
-    const appointment = await createAppointment(parsed.data);
+    const appointment = await createAppointment(parsed.data, request.usuario);
     return response.status(201).json({ appointment });
   } catch (error) {
     return next(error);

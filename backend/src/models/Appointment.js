@@ -6,6 +6,7 @@ const Appointment = sequelize.define(
   {
     appointmentId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, field: 'id_cita' },
     folio: { type: DataTypes.TEXT, allowNull: false, unique: true, field: 'folio' },
+    userId: { type: DataTypes.UUID, field: 'id_usuario' },
     patientId: { type: DataTypes.UUID, allowNull: false, field: 'id_paciente' },
     doctorId: { type: DataTypes.UUID, allowNull: false, field: 'id_medico' },
     specialtyId: { type: DataTypes.SMALLINT, allowNull: false, field: 'id_especialidad' },

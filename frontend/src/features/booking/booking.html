@@ -104,41 +104,12 @@
 
         <section class="booking-section" aria-labelledby="datos-titulo">
           <h2 id="datos-titulo"><span>4</span> Tus datos</h2>
-          <form name="patientForm" class="patient-form" novalidate>
-            <div class="patient-field">
-              <label for="paciente-nombre">Nombre completo</label>
-              <input
-                id="paciente-nombre"
-                name="name"
-                type="text"
-                ng-model="$ctrl.patient.name"
-                autocomplete="name"
-                required
-              />
-            </div>
-            <div class="patient-field">
-              <label for="paciente-telefono">Teléfono</label>
-              <input
-                id="paciente-telefono"
-                name="phone"
-                type="tel"
-                ng-model="$ctrl.patient.phone"
-                autocomplete="tel"
-                required
-              />
-            </div>
-            <div class="patient-field patient-field-wide">
-              <label for="paciente-correo">Correo electrónico</label>
-              <input
-                id="paciente-correo"
-                name="email"
-                type="email"
-                ng-model="$ctrl.patient.email"
-                autocomplete="email"
-                required
-              />
-            </div>
-          </form>
+          <p class="booking-profile-data">
+            La cita se vinculará automáticamente con:
+            <strong>{{$ctrl.profile.fullName || 'Tu perfil'}}</strong>
+            <span>{{$ctrl.profile.email}}</span>
+            <span>{{$ctrl.profile.phone}}</span>
+          </p>
         </section>
       </div>
 
@@ -161,15 +132,15 @@
             <dt>Hora</dt>
             <dd>{{$ctrl.selectedTime || 'Por seleccionar'}}</dd>
           </div>
-          <div ng-if="$ctrl.patient.name">
+          <div ng-if="$ctrl.profile.fullName">
             <dt>Paciente</dt>
-            <dd>{{$ctrl.patient.name}}</dd>
+            <dd>{{$ctrl.profile.fullName}}</dd>
           </div>
         </dl>
         <button
           type="button"
           class="booking-confirm"
-          ng-disabled="!$ctrl.canConfirm(patientForm)"
+          ng-disabled="!$ctrl.canConfirm()"
           ng-click="$ctrl.confirm()"
         >
           Confirmar cita

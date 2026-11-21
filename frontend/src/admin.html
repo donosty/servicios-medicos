@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel administrativo | MEDICOM</title>
+    <link rel="icon" href="/assets/medicom-icon.webp" type="image/webp" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/features/auth/auth.css" />
+  </head>
+  <body class="admin-page">
+    <main class="admin-layout">
+      <aside class="admin-sidebar" aria-label="Navegación administrativa">
+        <img src="/assets/medicom-blanco.webp" alt="MEDICOM" />
+        <strong id="admin-name">Administrador</strong>
+        <span>Panel administrativo</span>
+      </aside>
+      <section class="admin-content">
+        <header class="admin-heading">
+          <h1>Panel administrativo</h1>
+          <button id="admin-logout" class="admin-logout" type="button">Cerrar sesión</button>
+        </header>
+        <article class="admin-card">
+          <h2>Bienvenido</h2>
+          <p>La interfaz administrativa está disponible y protegida por tu sesión.</p>
+        </article>
+      </section>
+    </main>
+    <script src="/features/auth/admin.js"></script>
+  </body>
+</html>

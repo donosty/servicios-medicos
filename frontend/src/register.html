@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crear cuenta | MEDICOM</title>
+    <link rel="icon" href="/assets/medicom-icon.webp" type="image/webp" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/features/auth/auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-card" aria-labelledby="registro-titulo">
+        <img class="auth-brand" src="/assets/medicom.webp" alt="MEDICOM" />
+        <h1 id="registro-titulo">Crear cuenta</h1>
+        <p class="auth-intro">Regístrate para agendar y gestionar tus citas.</p>
+        <form id="register-form">
+          <div class="auth-field">
+            <label for="nombre">Nombre completo</label>
+            <input id="nombre" name="fullName" type="text" autocomplete="name" minlength="3" maxlength="120" required />
+          </div>
+          <div class="auth-field">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" name="phone" type="tel" autocomplete="tel" minlength="7" maxlength="25" required />
+          </div>
+          <div class="auth-field">
+            <label for="correo">Correo electrónico</label>
+            <input id="correo" name="email" type="email" autocomplete="email" maxlength="254" required />
+          </div>
+          <div class="auth-field">
+            <label for="contrasena">Contraseña</label>
+            <input id="contrasena" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required />
+          </div>
+          <button class="auth-submit" type="submit">Crear cuenta</button>
+          <p id="register-message" class="auth-message" role="alert"></p>
+        </form>
+        <div class="auth-links">
+          <a href="/login.html">Ya tengo una cuenta</a>
+        </div>
+      </section>
+    </main>
+    <script src="/features/auth/register.js"></script>
+  </body>
+</html>
