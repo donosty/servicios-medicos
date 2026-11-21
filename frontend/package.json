@@ -2,11 +2,12 @@
   "name": "servicios-medicos-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "npm run build && npm start",
     "start": "http-server dist -p 4200 -c-1 -P http://backend:3000",
     "build": "mkdir -p dist && cp -R src/. dist/ && cp -R Lib dist/Lib && cp -R node_modules/bootstrap/dist dist/bootstrap",
-    "test": "echo \"No hay pruebas configuradas para AngularJS todavía\""
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",

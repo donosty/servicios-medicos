@@ -2,13 +2,14 @@
   "use strict";
 
   angular
-    .module("serviciosMedicosApp", [])
+    .module("serviciosMedicosApp")
     .controller("HomeController", [
       "$document",
       "$timeout",
       function HomeController($document, $timeout) {
         const home = this;
         const doc = $document[0];
+
         home.searchText = "";
         home.query = "";
         home.menuOpen = false;
@@ -18,11 +19,7 @@
         home.toggleMenu = function () {
           home.menuOpen = !home.menuOpen;
           if (home.menuOpen) {
-            $timeout(
-              () => doc.querySelector("#menu-principal a").focus(),
-              0,
-              false,
-            );
+            $timeout(() => doc.querySelector("#menu-principal a").focus(), 0, false);
           }
         };
 
@@ -45,9 +42,7 @@
           home.notice = message;
           dialog.addEventListener(
             "close",
-            () => {
-              (fromMenu ? doc.getElementById("menu-toggle") : trigger).focus();
-            },
+            () => (fromMenu ? doc.getElementById("menu-toggle") : trigger).focus(),
             { once: true },
           );
           dialog.showModal();
@@ -66,39 +61,31 @@
           home.returnHome();
           home.searchText = name;
           home.query = name.trim();
-          $timeout(
-            () => {
-              const section = doc.getElementById("especialidades");
-              if (section) {
-                const heading = doc.getElementById("titulo-especialidades");
-                (heading || section).focus({ preventScroll: true });
-                section.scrollIntoView();
-              }
-            },
-            0,
-            false,
-          );
+          $timeout(() => {
+            const section = doc.getElementById("especialidades");
+            if (section) {
+              const heading = doc.getElementById("titulo-especialidades");
+              (heading || section).focus({ preventScroll: true });
+              section.scrollIntoView();
+            }
+          }, 0, false);
         };
 
         home.search = function () {
           home.filterBy(home.searchText || "");
         };
 
-        home.openBooking = function (name, event) {
+        home.openBooking = function (name) {
           home.bookingOpen = true;
           home.bookingSpecialty = name || "";
           home.closeMenu();
-          $timeout(
-            () => {
-              const heading = doc.getElementById("agenda-titulo");
-              if (heading) {
-                heading.focus();
-                doc.getElementById("contenido").scrollIntoView();
-              }
-            },
-            0,
-            false,
-          );
+          $timeout(() => {
+            const heading = doc.getElementById("agenda-titulo");
+            if (heading) {
+              heading.focus();
+              doc.getElementById("contenido").scrollIntoView();
+            }
+          }, 0, false);
         };
 
         home.closeBooking = function () {
@@ -114,15 +101,5 @@
           home.filterBy("");
         };
       },
-    ])
-    .component("homeFooter", {
-      templateUrl: "/components/footer.html",
-      bindings: { onHome: "&", onNotice: "&", onSelect: "&" },
-      controller: [
-        "medicalSpecialties",
-        function HomeFooterController(specialties) {
-          this.specialties = specialties;
-        },
-      ],
-    });
+    ]);
 })();

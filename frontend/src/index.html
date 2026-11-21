@@ -19,9 +19,9 @@
     />
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/styles.css" />
-    <link rel="stylesheet" href="/components/care.css" />
-    <link rel="stylesheet" href="/components/booking.css" />
-    <link rel="stylesheet" href="/components/reviews.css" />
+    <link rel="stylesheet" href="/features/specialties/care.css" />
+    <link rel="stylesheet" href="/features/booking/booking.css" />
+    <link rel="stylesheet" href="/features/reviews/reviews.css" />
   </head>
   <body class="medicom-home" id="inicio" ng-controller="HomeController as home">
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -173,9 +173,17 @@
       </button>
     </dialog>
     <script src="/Lib/angular.min.js"></script>
-    <script src="/app.js"></script>
-    <script src="/components/care.js"></script>
-    <script src="/components/booking.js"></script>
-    <script src="/components/reviews.js"></script>
+    <script src="/app/app.module.js"></script>
+    <script src="/common/services/api.service.js"></script>
+    <script src="/common/utils/string.utils.js"></script>
+    <script src="/common/utils/date.utils.js"></script>
+    <script src="/app/controllers/home.controller.js"></script>
+    <script src="/app/components/footer.component.js"></script>
+    <script src="/features/specialties/specialties.service.js"></script>
+    <script src="/features/specialties/care-carousel.directive.js"></script>
+    <script src="/features/specialties/specialty-list.component.js"></script>
+    <script src="/features/booking/booking.component.js"></script>
+    <script src="/features/care/care-benefits.component.js"></script>
+    <script src="/features/reviews/reviews.component.js"></script>
   </body>
 </html>
