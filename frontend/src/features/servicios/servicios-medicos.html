@@ -1,0 +1,118 @@
+<section class="medical-services" aria-labelledby="servicios-medicos-titulo">
+  <div class="home-wrap medical-services-shell">
+    <button type="button" class="services-back" ng-click="$ctrl.onClose()">
+      <span aria-hidden="true">←</span> Volver al inicio
+    </button>
+
+    <div class="services-hero">
+      <div class="services-hero-copy">
+        <p class="services-eyebrow">
+          Atención integral › Catálogo de servicios médicos
+        </p>
+        <h1 id="servicios-medicos-titulo">
+          Nuestros Servicios Médicos de
+          <span>Alta Especialidad</span>
+        </h1>
+        <p>
+          En MEDICOM combinamos innovación diagnóstica de última generación con
+          médicos especialistas certificados, brindando diagnósticos oportunos y
+          acompañamiento cálido para toda la familia.
+        </p>
+        <label class="services-search">
+          <svg aria-hidden="true" width="18" height="18">
+            <use href="/assets/ui.svg#search"></use>
+          </svg>
+          <span class="visually-hidden">Buscar servicios</span>
+          <input
+            type="search"
+            ng-model="$ctrl.searchText"
+            ng-change="$ctrl.filterServices()"
+            placeholder="Buscar servicio, especialidad, médico o estudio clínico..."
+          />
+        </label>
+      </div>
+      <div class="services-certifications" aria-label="Certificaciones">
+        <article>
+          <strong>Certificación CSQ</strong>
+          <span>Máxima calidad clínica</span>
+        </article>
+        <article>
+          <strong>ISO 9001:2015</strong>
+          <span>Seguridad y transparencia</span>
+        </article>
+      </div>
+    </div>
+
+    <div class="services-categories" aria-label="Categorías de servicios">
+      <button
+        type="button"
+        ng-repeat="category in $ctrl.categories track by category"
+        ng-class="{'is-active': $ctrl.selectedCategory === category}"
+        ng-click="$ctrl.selectCategory(category)"
+      >
+        {{category}}
+      </button>
+    </div>
+
+    <div class="services-grid">
+      <article
+        class="service-card"
+        ng-repeat="service in $ctrl.visibleServices track by service.id"
+      >
+        <div class="service-card-heading">
+          <span class="service-icon" aria-hidden="true">{{service.icon}}</span>
+          <span class="service-category">{{service.category}}</span>
+        </div>
+        <h2>{{service.title}}</h2>
+        <p>{{service.description}}</p>
+        <ul>
+          <li ng-repeat="feature in service.features track by $index">
+            <span aria-hidden="true">✓</span>{{feature}}
+          </li>
+        </ul>
+        <button
+          type="button"
+          class="service-book"
+          ng-click="$ctrl.onBook({name: service.specialtyName, $event: $event})"
+        >
+          <span aria-hidden="true">▣</span> Agendar servicio
+          <span aria-hidden="true">→</span>
+        </button>
+      </article>
+    </div>
+
+    <p class="services-empty" ng-if="$ctrl.visibleServices.length === 0">
+      No encontramos servicios con esos criterios.
+    </p>
+
+    <div class="services-stats" aria-label="Indicadores MEDICOM">
+      <div><strong>+15 Años</strong><span>De experiencia clínica</span></div>
+      <div><strong>+25</strong><span>Especialistas certificados</span></div>
+      <div><strong>98%</strong><span>Pacientes satisfechos</span></div>
+      <div><strong>24/7</strong><span>Servicio médico y urgencias</span></div>
+    </div>
+
+    <aside class="services-callout">
+      <div>
+        <h2>
+          ¿Listo para cuidar de tu salud con <span>Alta Especialidad?</span>
+        </h2>
+        <p>
+          En MEDICOM combinamos innovación diagnóstica de última generación con
+          médicos especialistas certificados.
+        </p>
+      </div>
+      <div class="services-callout-actions">
+        <button
+          type="button"
+          ng-click="$ctrl.onBook({name: '', $event: $event})"
+        >
+          ▣ Agendar Cita Médica
+        </button>
+        <a href="tel:5512345678"
+          >☎ Llamanos directamente: <strong>55 1234 5678</strong></a
+        >
+      </div>
+    </aside>
+  </div>
+</section>
