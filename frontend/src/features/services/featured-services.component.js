@@ -3,30 +3,30 @@
 
   angular
     .module("serviciosMedicosApp")
-    .constant("featuredMedicalServices", [])
+    .constant("medicalServiceCatalog", { featured: [], prices: {}, error: false })
     .run([
       "api",
-      "featuredMedicalServices",
-      function LoadFeaturedMedicalServices(api, featuredMedicalServices) {
+      "medicalServiceCatalog",
+      function LoadMedicalServices(api, catalog) {
         api.getMedicalServices()
           .then(function (response) {
-            featuredMedicalServices.splice(
-              0,
-              featuredMedicalServices.length,
-              ...(response.data.services || []),
-            );
+            const services = response.data.services || [];
+            catalog.featured = services.slice(0, 4);
+            services.forEach(function (service) {
+              catalog.prices[service.id] = service.price;
+            });
           })
           .catch(function () {
-            featuredMedicalServices.splice(0, featuredMedicalServices.length);
+            catalog.error = true;
           });
       },
     ])
     .component("featuredServices", {
       templateUrl: "/features/services/featured-services.html",
       controller: [
-        "featuredMedicalServices",
-        function FeaturedServicesController(featuredMedicalServices) {
-          this.services = featuredMedicalServices;
+        "medicalServiceCatalog",
+        function FeaturedServicesController(catalog) {
+          this.catalog = catalog;
         },
       ],
     });

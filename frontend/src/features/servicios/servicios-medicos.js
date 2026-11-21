@@ -4,8 +4,10 @@
   angular
     .module("serviciosMedicosApp")
     .controller("ServiciosMedicosController", [
-      function ServiciosMedicosController() {
+      "medicalServiceCatalog",
+      function ServiciosMedicosController(catalog) {
         const ctrl = this;
+        ctrl.catalog = catalog;
         ctrl.searchText = "";
         ctrl.selectedCategory = "Todos los Servicios";
         ctrl.categories = [
@@ -19,7 +21,7 @@
 
         ctrl.services = [
           {
-            id: 1,
+            id: "consulta-especializada",
             category: "Consultas Médicas",
             icon: "♧",
             title: "Consulta Especializada",
@@ -32,7 +34,7 @@
             specialtyName: "Cardiología",
           },
           {
-            id: 2,
+            id: "laboratorio",
             category: "Laboratorio Clínico",
             icon: "⚗",
             title: "Laboratorio Clínico Automatizado",
@@ -45,7 +47,7 @@
             specialtyName: "Análisis Clínicos",
           },
           {
-            id: 3,
+            id: "imagenologia",
             category: "Diagnóstico e Imagen",
             icon: "▦",
             title: "Ultrasonido y Rayos X Digital",
@@ -58,7 +60,7 @@
             specialtyName: "Imagenología",
           },
           {
-            id: 4,
+            id: "medicina-general",
             category: "Preventivo",
             icon: "♡",
             title: "Check-up Preventivo Integral",
@@ -71,7 +73,7 @@
             specialtyName: "Medicina General",
           },
           {
-            id: 5,
+            id: "cirugia-ambulatoria",
             category: "Cirugía Ambulatoria",
             icon: "▱",
             title: "Cirugía Ambulatoria y Endoscopia",
@@ -84,7 +86,7 @@
             specialtyName: "Cirugía General",
           },
           {
-            id: 6,
+            id: "urgencias",
             category: "Urgencias 24/7",
             icon: "⊕",
             title: "Urgencias y Triaje Continuo",

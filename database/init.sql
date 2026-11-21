@@ -393,6 +393,8 @@ SET nombre = EXCLUDED.nombre,
     ruta_icono = EXCLUDED.ruta_icono,
     orden_visualizacion = EXCLUDED.orden_visualizacion;
 
+\ir migrations/precios-servicios.sql
+
 INSERT INTO roles_usuario (codigo, nombre)
 VALUES
     ('consumidor', 'Consumidor'),

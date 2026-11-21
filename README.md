@@ -95,6 +95,11 @@ El inicio de sesión está disponible en `http://localhost:4200/login.html`.
 Las sesiones se mantienen mediante una cookie HttpOnly y pueden durar hasta
 siete días.
 
+El inicio, los servicios, las especialidades, los médicos y los horarios se
+pueden consultar sin cuenta. Al confirmar una cita, se pide iniciar sesión
+si hace falta. Después de entrar, la agenda recupera la selección y comprueba
+si el horario sigue disponible para que el usuario confirme la cita.
+
 La base de datos crea el usuario administrador inicial:
 
 - Correo: `admin@medicom.com`
@@ -174,12 +179,20 @@ datos catalogados utilizan nombres en español, incluyendo tablas como
 `especialidades_medicas`, `medicos`, `pacientes`, `citas` y
 `servicios_medicos`.
 
-La tabla `servicios_medicos` incluye los servicios iniciales Urgencias,
-Imagenología, Laboratorio y Medicina General.
+La tabla `servicios_medicos` almacena el precio de cada servicio en MXN. Los
+precios iniciales son ficticios y se muestran en el catálogo y en los
+servicios destacados.
 
 Docker monta el archivo SQL en
 `/docker-entrypoint-initdb.d/01-init.sql`, por lo que PostgreSQL lo ejecuta
 automáticamente la primera vez que crea el volumen `postgres_data`.
+
+Si el volumen ya existía antes de incorporar los precios, aplica la migración
+de forma directa para conservar las citas, cuentas y precios existentes:
+
+```sh
+docker compose exec -T db sh -c 'psql --single-transaction -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -' < database/migrations/precios-servicios.sql
+```
 
 El script crea las especialidades, médicos y sus relaciones; los horarios
 recurrentes; los estados de cita; beneficios y testimonios utilizados por el

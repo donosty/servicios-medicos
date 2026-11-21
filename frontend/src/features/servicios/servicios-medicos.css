@@ -197,6 +197,12 @@
   color: #006c9e;
   font-size: 0.68rem;
 }
+.service-card .service-price {
+  min-height: 0;
+  margin: 0 0 14px;
+  color: var(--navy);
+  font: 800 1.05rem/1.3 var(--subheading);
+}
 .service-book {
   width: 100%;
   min-height: 44px;

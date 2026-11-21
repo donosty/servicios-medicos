@@ -11,7 +11,7 @@ test("index carga el módulo AngularJS desde la nueva estructura", async () => {
   assert.match(html, /\/features\/booking\/booking\.component\.js/);
   assert.match(html, /<featured-services/);
   assert.match(html, /featured-services\.css/);
-  assert.match(html, /auth\.guard\.js/);
+  assert.match(html, /ng-if="!home\.sessionUser" href="\/login\.html"/);
 });
 
 test("componentes principales siguen registrados", async () => {

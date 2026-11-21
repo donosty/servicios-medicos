@@ -8,6 +8,7 @@ const ServicioMedico = sequelize.define(
     slug: { type: DataTypes.TEXT, allowNull: false, unique: true, field: 'clave' },
     name: { type: DataTypes.TEXT, allowNull: false, unique: true, field: 'nombre' },
     description: { type: DataTypes.TEXT, allowNull: false, field: 'descripcion' },
+    price: { type: DataTypes.DECIMAL(10, 2), field: 'precio' },
     iconPath: { type: DataTypes.TEXT, field: 'ruta_icono' },
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, field: 'esta_activo' },
     displayOrder: { type: DataTypes.SMALLINT, allowNull: false, defaultValue: 0, field: 'orden_visualizacion' },

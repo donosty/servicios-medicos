@@ -72,6 +72,12 @@
             Médicos
           </button>
           <a href="#contacto" ng-click="home.closeMenu()">Contacto</a>
+          <a class="mobile-auth-action" ng-if="!home.sessionUser" href="/login.html">Iniciar sesión</a>
+          <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'consumidor'" href="/profile.html">Mi perfil</a>
+          <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'administrador'" href="/admin.html">Administración</a>
+          <button type="button" class="mobile-auth-action" ng-if="home.sessionUser" ng-click="home.logout($event)">
+            Cerrar sesión
+          </button>
         </nav>
         <div class="header-actions">
           <button
@@ -81,10 +87,16 @@
           >
             Agendar cita
           </button>
-          <a type="button" class="profile-button" href="/profile.html">
+          <a class="profile-button" ng-if="!home.sessionUser" href="/login.html">
+            Iniciar sesión
+          </a>
+          <a class="profile-button" ng-if="home.sessionUser.role === 'consumidor'" href="/profile.html">
             Mi perfil
           </a>
-          <button type="button" class="auth-logout-button" ng-click="home.logout()">
+          <a class="profile-button" ng-if="home.sessionUser.role === 'administrador'" href="/admin.html">
+            Administración
+          </a>
+          <button type="button" class="auth-logout-button" ng-if="home.sessionUser" ng-click="home.logout($event)">
             Cerrar sesión
           </button>
           <button
@@ -179,6 +191,8 @@
       <appointment-booking
         ng-if="home.bookingOpen"
         specialty-name="home.bookingSpecialty"
+        session-user="home.sessionUser"
+        resume="home.resumeBooking"
         on-close="home.closeBooking()"
       ></appointment-booking>
       <medical-about
@@ -229,6 +243,5 @@
     <script src="/features/nosotros/nosotros.js"></script>
     <script src="/features/servicios/servicios-medicos.js"></script>
     <script src="/features/blog/blog.js"></script>
-    <script src="/features/auth/auth.guard.js"></script>
   </body>
 </html>

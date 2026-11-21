@@ -54,6 +54,10 @@
       </button>
     </div>
 
+    <p class="services-empty" ng-if="$ctrl.catalog.error" role="status">
+      No fue posible cargar los precios.
+    </p>
+
     <div class="services-grid">
       <article
         class="service-card"
@@ -70,6 +74,9 @@
             <span aria-hidden="true">✓</span>{{feature}}
           </li>
         </ul>
+        <p class="service-price" ng-if="$ctrl.catalog.prices[service.id] != null">
+          {{$ctrl.catalog.prices[service.id] | currency:'$'}} MXN
+        </p>
         <button
           type="button"
           class="service-book"
