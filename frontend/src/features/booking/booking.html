@@ -1,0 +1,190 @@
+<section class="appointment-booking" aria-labelledby="agenda-titulo">
+  <div class="home-wrap booking-shell">
+    <div class="booking-heading">
+      <div>
+        <button type="button" class="booking-back" ng-click="$ctrl.onClose()">
+          <span aria-hidden="true">←</span> Volver al inicio
+        </button>
+        <p class="booking-eyebrow">Agenda tu atención</p>
+        <h1 id="agenda-titulo" tabindex="-1">Agendar cita médica</h1>
+      </div>
+      <p class="booking-step"><span>1</span> Selección de cita</p>
+    </div>
+
+    <div class="booking-layout">
+      <div class="booking-main">
+        <section class="booking-section" aria-labelledby="especialidad-titulo">
+          <h2 id="especialidad-titulo">
+            <span>1</span> Elige una especialidad
+          </h2>
+          <label class="visually-hidden" for="especialidad-cita"
+            >Especialidad</label
+          >
+          <select
+            id="especialidad-cita"
+            class="booking-select"
+            ng-model="$ctrl.selectedSpecialty"
+            ng-change="$ctrl.changeSpecialty()"
+            ng-options="item.id as item.name for item in $ctrl.specialties"
+          >
+            <option value="">Selecciona una especialidad</option>
+          </select>
+        </section>
+
+        <section class="booking-section" aria-labelledby="medico-titulo">
+          <h2 id="medico-titulo"><span>2</span> Elige al especialista</h2>
+          <div class="doctor-grid">
+            <article
+              class="doctor-card"
+              ng-repeat="doctor in $ctrl.doctors track by doctor.id"
+              ng-class="{'is-selected': $ctrl.selectedDoctor.id === doctor.id}"
+            >
+              <img
+                ng-src="{{doctor.image}}"
+                width="112"
+                height="112"
+                alt="Retrato de {{doctor.name}}"
+              />
+              <div class="doctor-info">
+                <h3>{{doctor.name}}</h3>
+                <p>{{doctor.description}}</p>
+                <button
+                  type="button"
+                  ng-class="{'doctor-selected': $ctrl.selectedDoctor.id === doctor.id}"
+                  ng-click="$ctrl.selectDoctor(doctor)"
+                  ng-attr-aria-pressed="{{$ctrl.selectedDoctor.id === doctor.id}}"
+                >
+                  {{$ctrl.selectedDoctor.id === doctor.id ? 'Seleccionado' :
+                  'Seleccionar'}}
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="booking-section" aria-labelledby="fecha-titulo">
+          <h2 id="fecha-titulo"><span>3</span> Selecciona fecha y hora</h2>
+          <p class="booking-label">Fecha disponible</p>
+          <div
+            class="date-grid"
+            role="radiogroup"
+            aria-label="Fechas disponibles"
+          >
+            <button
+              type="button"
+              class="date-option"
+              ng-repeat="date in $ctrl.availableDates track by date.value"
+              ng-class="{'is-selected': $ctrl.selectedDate.value === date.value}"
+              ng-click="$ctrl.selectDate(date)"
+              ng-attr-aria-pressed="{{$ctrl.selectedDate.value === date.value}}"
+            >
+              <span>{{date.day}}</span>
+              <strong>{{date.dayNumber}}</strong>
+              <small>{{date.month}}</small>
+            </button>
+          </div>
+
+          <p class="booking-label">Horario disponible</p>
+          <div
+            class="time-grid"
+            role="radiogroup"
+            aria-label="Horarios disponibles"
+          >
+            <button
+              type="button"
+              ng-repeat="time in $ctrl.availableTimes track by time.value"
+              ng-class="{'is-selected': $ctrl.selectedTime === time.value}"
+              ng-click="$ctrl.selectTime(time)"
+              ng-attr-aria-pressed="{{$ctrl.selectedTime === time.value}}"
+            >
+              {{time.label}}
+            </button>
+          </div>
+        </section>
+
+        <section class="booking-section" aria-labelledby="datos-titulo">
+          <h2 id="datos-titulo"><span>4</span> Tus datos</h2>
+          <form name="patientForm" class="patient-form" novalidate>
+            <div class="patient-field">
+              <label for="paciente-nombre">Nombre completo</label>
+              <input
+                id="paciente-nombre"
+                name="name"
+                type="text"
+                ng-model="$ctrl.patient.name"
+                autocomplete="name"
+                required
+              />
+            </div>
+            <div class="patient-field">
+              <label for="paciente-telefono">Teléfono</label>
+              <input
+                id="paciente-telefono"
+                name="phone"
+                type="tel"
+                ng-model="$ctrl.patient.phone"
+                autocomplete="tel"
+                required
+              />
+            </div>
+            <div class="patient-field patient-field-wide">
+              <label for="paciente-correo">Correo electrónico</label>
+              <input
+                id="paciente-correo"
+                name="email"
+                type="email"
+                ng-model="$ctrl.patient.email"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <aside class="booking-summary" aria-labelledby="resumen-titulo">
+        <h2 id="resumen-titulo">Resumen de tu cita</h2>
+        <dl>
+          <div>
+            <dt>Especialidad</dt>
+            <dd>{{$ctrl.selectedSpecialtyName || 'Por seleccionar'}}</dd>
+          </div>
+          <div>
+            <dt>Médico</dt>
+            <dd>{{$ctrl.selectedDoctor.name || 'Por seleccionar'}}</dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{{$ctrl.selectedDate.label || 'Por seleccionar'}}</dd>
+          </div>
+          <div>
+            <dt>Hora</dt>
+            <dd>{{$ctrl.selectedTime || 'Por seleccionar'}}</dd>
+          </div>
+          <div ng-if="$ctrl.patient.name">
+            <dt>Paciente</dt>
+            <dd>{{$ctrl.patient.name}}</dd>
+          </div>
+        </dl>
+        <button
+          type="button"
+          class="booking-confirm"
+          ng-disabled="!$ctrl.canConfirm(patientForm)"
+          ng-click="$ctrl.confirm()"
+        >
+          Confirmar cita
+        </button>
+        <p class="booking-assurance">
+          Tus datos se utilizarán únicamente para gestionar tu cita.
+        </p>
+        <div class="booking-success" ng-if="$ctrl.confirmed" role="status">
+          <strong>Cita agendada</strong>
+          <span>Folio: {{$ctrl.folio}}</span>
+        </div>
+        <p class="booking-error" ng-if="$ctrl.errorMessage" role="alert">
+          {{$ctrl.errorMessage}}
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>

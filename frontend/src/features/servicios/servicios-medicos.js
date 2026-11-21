@@ -125,7 +125,7 @@
       },
     ])
     .component("medicalServices", {
-      templateUrl: "/components/servicios-medicos.html",
+      templateUrl: "/features/servicios/servicios-medicos.html",
       bindings: { onClose: "&", onBook: "&" },
       controller: "ServiciosMedicosController",
     });

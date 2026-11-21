@@ -140,7 +140,7 @@
       },
     ])
     .component("medicalBlog", {
-      templateUrl: "/components/blog.html",
+      templateUrl: "/features/blog/blog.html",
       bindings: { onClose: "&", onBook: "&" },
       controller: "BlogController",
     });
