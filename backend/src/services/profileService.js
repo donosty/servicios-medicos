@@ -11,6 +11,20 @@ import {
 } from '../models/index.js';
 import { Op } from 'sequelize';
 
+const rescheduleNoticeMs = 24 * 60 * 60 * 1000;
+const clinicClock = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Mexico_City',
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+});
+
+// startAt stores the clinic's displayed date and time in its UTC fields.
+const earliestReschedulableStart = (now) => {
+  const threshold = new Date(now + rescheduleNoticeMs);
+  const parts = Object.fromEntries(clinicClock.formatToParts(threshold).map(({ type, value }) => [type, value]));
+  return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second, threshold.getUTCMilliseconds());
+};
+
 export const createError = (message, status) => {
   const error = new Error(message);
   error.status = status;
@@ -90,6 +104,7 @@ export const getUserAppointments = async (userId) => {
   });
 
   const now = Date.now();
+  const earliestStart = earliestReschedulableStart(now);
   const scheduled = [];
   const completed = [];
 
@@ -113,6 +128,7 @@ export const getUserAppointments = async (userId) => {
       status: appointment.estado ? appointment.estado.name : 'Sin estado',
       statusCode,
       rescheduled: !!appointment.rescheduledAt,
+      canReschedule: statusCode === 'confirmada' && !appointment.rescheduledAt && startAt.getTime() >= earliestStart,
     };
 
     if (isCompleted) completed.push(item);
@@ -137,6 +153,11 @@ export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
     const status = await AppointmentStatus.findByPk(appointment.statusId, { transaction });
     if (!status || status.statusCode !== 'confirmada') {
       throw createError('Solo puedes cambiar citas confirmadas.', 422);
+    }
+
+    const now = Date.now();
+    if (new Date(appointment.startAt).getTime() < earliestReschedulableStart(now)) {
+      throw createError('Solo puedes cambiar el horario con al menos 24 horas de anticipación a tu cita.', 422);
     }
 
     const startAt = new Date(`${data.date}T${data.time}:00Z`);
@@ -171,7 +192,7 @@ export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
     await appointment.update({
       startAt,
       endAt,
-      rescheduledAt: new Date(),
+      rescheduledAt: new Date(now),
     }, { transaction });
 
     const registration = await AppointmentRegistration.findOne({

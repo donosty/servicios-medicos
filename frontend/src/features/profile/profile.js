@@ -60,7 +60,10 @@
       return;
     }
 
-    panel.innerHTML =
+    const rescheduleNotice = panel === scheduledPanel
+      ? "<p>Puedes cambiar el horario una sola vez, con al menos 24 horas de anticipación a la cita original.</p>"
+      : "";
+    panel.innerHTML = rescheduleNotice +
       '<div class="appointment-list">' +
       appointments.map((appointment) => `
         <article class="appointment-item">
@@ -74,7 +77,7 @@
           </div>
           <div class="appointment-side">
             <span class="appointment-status">${escapeHtml(appointment.status)}</span>
-            ${appointment.statusCode === "confirmada" && !appointment.rescheduled ? `
+            ${appointment.canReschedule === true ? `
               <button
                 type="button"
                 class="reschedule-toggle"
