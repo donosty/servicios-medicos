@@ -1,0 +1,2 @@
+ALTER TABLE citas
+    ADD COLUMN IF NOT EXISTS reprogramada_en TIMESTAMPTZ;

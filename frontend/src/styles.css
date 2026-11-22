@@ -23,6 +23,18 @@
   font-display: swap;
 }
 
+:root {
+  --pale: #f4f9fc;
+  --cyan: #009fd9;
+  --navy: #003b71;
+  --slate: #334155;
+  --green: #10b981;
+  --orange: #ff6d00;
+  --heading: "Plus Jakarta Sans", Arial, sans-serif;
+  --subheading: Inter, "Helvetica Neue", sans-serif;
+  --body: Lato, Arial, sans-serif;
+}
+
 .medicom-home {
   --pale: #f4f9fc;
   --cyan: #009fd9;

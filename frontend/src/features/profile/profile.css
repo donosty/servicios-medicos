@@ -1,17 +1,17 @@
-.profile-page {
+body.profile-page {
   min-height: 100vh;
   margin: 0;
-  background: linear-gradient(145deg, #f4f9fc, #e3f2fb);
+  background: #f4f9fc;
   color: var(--slate);
   font-family: Lato, Arial, sans-serif;
 }
 
-.profile-header {
+body.profile-page .profile-header {
   background: white;
   box-shadow: 0 2px 12px rgba(0, 59, 113, 0.1);
 }
 
-.profile-header-inner {
+body.profile-page .profile-header-inner {
   min-height: 86px;
   display: flex;
   align-items: center;
@@ -41,7 +41,7 @@
   font-weight: 700;
 }
 
-.profile-layout {
+body.profile-page .profile-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 24px;
@@ -50,11 +50,10 @@
 
 .profile-sidebar,
 .profile-card {
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid #dbe9f1;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
   box-shadow: 0 14px 38px rgba(0, 59, 113, 0.08);
-  backdrop-filter: blur(10px);
 }
 
 .profile-sidebar {
@@ -195,7 +194,7 @@
   gap: 14px;
   border: 1px solid rgba(0, 59, 113, 0.08);
   border-radius: 14px;
-  background: rgba(244, 249, 252, 0.75);
+  background: #f4f9fc;
   padding: 16px;
 }
 
@@ -216,6 +215,64 @@
   padding: 6px 10px;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.appointment-side {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.reschedule-toggle,
+.reschedule-confirm {
+  border: 0;
+  border-radius: 8px;
+  background: var(--navy);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.reschedule-toggle:disabled,
+.reschedule-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.reschedule-editor {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(0, 59, 113, 0.12);
+  padding-top: 10px;
+}
+
+.reschedule-editor[hidden] {
+  display: none;
+}
+
+.reschedule-editor label {
+  display: grid;
+  gap: 4px;
+  color: var(--navy);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.reschedule-editor select {
+  min-height: 38px;
+  border: 1px solid rgba(0, 59, 113, 0.18);
+  border-radius: 8px;
+  background: white;
+  padding: 6px 8px;
+}
+
+.reschedule-message {
+  margin: 0;
+  color: #587080;
+  font-size: 0.78rem;
 }
 
 .appointment-empty {
@@ -242,5 +299,9 @@
 
   .appointment-item {
     grid-template-columns: 1fr;
+  }
+
+  .appointment-side {
+    justify-items: start;
   }
 }

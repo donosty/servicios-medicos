@@ -194,6 +194,7 @@ test('el perfil y las citas personales requieren sesión', async () => {
     ['/api/profile', 'GET'],
     ['/api/profile', 'PATCH'],
     ['/api/profile/appointments', 'GET'],
+    ['/api/profile/appointments/1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10', 'PATCH'],
   ]) {
     const response = await fetch(baseUrl + route, { method });
     assert.equal(response.status, 401);

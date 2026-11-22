@@ -213,6 +213,36 @@ El script crea las especialidades, médicos y sus relaciones; los horarios
 recurrentes; los estados de cita; beneficios y testimonios utilizados por el
 frontend. También incluye tablas normalizadas para pacientes y citas.
 
+Para habilitar una sola reprogramación por cita en una base ya creada, aplica:
+
+```sh
+docker compose exec -T db sh -c 'psql --single-transaction -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f -' < database/migrations/reprogramacion-citas.sql
+```
+
+La migración añade la columna `reprogramada_en` a la tabla `citas`. Cuando
+el usuario cambia el horario por primera vez, el backend registra la fecha
+de la reprogramación y oculta la opción de volver a cambiarla para esa cita.
+
+### Prevención de citas duplicadas y concurrencia
+
+Las citas se protegen mediante dos mecanismos:
+
+- Antes de insertar una cita o reprogramarla, el backend verifica dentro de
+  una transacción PostgreSQL que el médico no tenga ya una cita activa en el
+  horario solicitado.
+- El esquema incluye el índice único
+  `citas_medico_inicio_unico`, creado sobre `id_medico` e `inicia_en` para
+  citas cuyo estado no sea cancelado. PostgreSQL rechaza cualquier segundo
+  registro que coincida en médico y hora.
+
+Si dos personas intentan confirmar el mismo horario al mismo tiempo, solo una
+transacción puede crear la cita. La otra transacción será rechazada por la
+comprobación de disponibilidad o por el índice único, por lo que no se
+duplicará una cita ni se asignará simultáneamente el mismo horario. El frontend
+debe volver a cargar los horarios disponibles después de recibir un conflicto,
+y el backend mantiene el horario original si una reprogramación no puede
+completarse.
+
 Para inicializar nuevamente la base de datos desde el archivo SQL, elimina
 el volumen de PostgreSQL y vuelve a levantar los contenedores:
 

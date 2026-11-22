@@ -156,6 +156,9 @@ CREATE TABLE IF NOT EXISTS citas (
 );
 
 ALTER TABLE citas
+    ADD COLUMN IF NOT EXISTS reprogramada_en TIMESTAMPTZ;
+
+ALTER TABLE citas
     ADD COLUMN IF NOT EXISTS id_usuario UUID;
 
 DO $$

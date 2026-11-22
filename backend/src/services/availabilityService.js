@@ -21,7 +21,7 @@ export const getUpcomingAgendaDates = (now = new Date()) => {
 };
 
 // The agenda queries one day at a time or the next seven consecutive days.
-export const getOpenSlotsByDoctor = async (doctorIds, dates) => {
+export const getOpenSlotsByDoctor = async (doctorIds, dates, excludeAppointmentId) => {
   const openSlots = new Map();
   if (doctorIds.length === 0) return openSlots;
 
@@ -44,6 +44,7 @@ export const getOpenSlotsByDoctor = async (doctorIds, dates) => {
         doctorId: { [Op.in]: doctorIds },
         startAt: { [Op.gte]: dayStart(dates[0]), [Op.lt]: nextDay },
         statusId: { [Op.ne]: 4 },
+        ...(excludeAppointmentId ? { appointmentId: { [Op.ne]: excludeAppointmentId } } : {}),
       },
       attributes: ['doctorId', 'startAt'],
     }),
@@ -65,7 +66,7 @@ export const getOpenSlotsByDoctor = async (doctorIds, dates) => {
   return openSlots;
 };
 
-export const getAvailableTimes = async (doctorId, date) => {
-  const openSlots = await getOpenSlotsByDoctor([doctorId], [date]);
+export const getAvailableTimes = async (doctorId, date, excludeAppointmentId) => {
+  const openSlots = await getOpenSlotsByDoctor([doctorId], [date], excludeAppointmentId);
   return openSlots.get(doctorId) ?? [];
 };

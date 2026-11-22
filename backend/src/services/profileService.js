@@ -6,7 +6,10 @@ import {
   Doctor,
   MedicalSpecialty,
   AppointmentStatus,
+  AppointmentRegistration,
+  DoctorAvailabilitySlot,
 } from '../models/index.js';
+import { Op } from 'sequelize';
 
 export const createError = (message, status) => {
   const error = new Error(message);
@@ -98,6 +101,8 @@ export const getUserAppointments = async (userId) => {
       (statusCode !== 'cancelada' && now >= startAt.getTime() + 60 * 1000);
 
     const item = {
+      appointmentId: appointment.appointmentId,
+      doctorId: appointment.doctorId,
       folio: appointment.folio,
       date: startAt.toISOString().slice(0, 10),
       time: startAt.toISOString().slice(11, 16),
@@ -106,6 +111,8 @@ export const getUserAppointments = async (userId) => {
         : 'Médico no disponible',
       specialty: appointment.especialidad ? appointment.especialidad.name : 'Especialidad no disponible',
       status: appointment.estado ? appointment.estado.name : 'Sin estado',
+      statusCode,
+      rescheduled: !!appointment.rescheduledAt,
     };
 
     if (isCompleted) completed.push(item);
@@ -114,3 +121,74 @@ export const getUserAppointments = async (userId) => {
 
   return { scheduled, completed };
 };
+
+export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
+  sequelize.transaction(async (transaction) => {
+    const appointment = await Appointment.findOne({
+      where: { appointmentId, userId },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (!appointment) throw createError('La cita no existe o no pertenece a tu perfil.', 404);
+    if (appointment.rescheduledAt) {
+      throw createError('Esta cita ya fue reprogramada una vez.', 422);
+    }
+
+    const status = await AppointmentStatus.findByPk(appointment.statusId, { transaction });
+    if (!status || status.statusCode !== 'confirmada') {
+      throw createError('Solo puedes cambiar citas confirmadas.', 422);
+    }
+
+    const startAt = new Date(`${data.date}T${data.time}:00Z`);
+    if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
+      throw createError('La nueva fecha y hora no están disponibles.', 422);
+    }
+
+    const slot = await DoctorAvailabilitySlot.findOne({
+      where: {
+        doctorId: appointment.doctorId,
+        dayOfWeek: new Date(`${data.date}T00:00:00Z`).getUTCDay(),
+        startTime: `${data.time}:00`,
+        isActive: true,
+      },
+      transaction,
+    });
+    if (!slot) throw createError('El horario seleccionado no está disponible.', 409);
+
+    const conflict = await Appointment.findOne({
+      where: {
+        doctorId: appointment.doctorId,
+        startAt,
+        statusId: { [Op.ne]: 4 },
+        appointmentId: { [Op.ne]: appointmentId },
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (conflict) throw createError('El horario seleccionado ya fue registrado.', 409);
+
+    const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+    await appointment.update({
+      startAt,
+      endAt,
+      rescheduledAt: new Date(),
+    }, { transaction });
+
+    const registration = await AppointmentRegistration.findOne({
+      where: { appointmentId },
+      transaction,
+    });
+    if (registration) {
+      await registration.update({
+        appointmentDate: data.date,
+        appointmentTime: data.time,
+      }, { transaction });
+    }
+
+    return {
+      appointmentId: appointment.appointmentId,
+      folio: appointment.folio,
+      date: data.date,
+      time: data.time,
+    };
+  });

@@ -59,4 +59,20 @@ test("perfil incluye datos editables y citas separadas", async () => {
   );
   assert.match(script, /\/api\/profile/);
   assert.match(script, /\/api\/profile\/appointments/);
+  assert.match(script, /Cambiar horario/);
+  assert.match(script, /Confirmar cambio/);
+  assert.match(script, /excludeAppointmentId/);
+});
+
+test("los estilos globales y del perfil comparten la paleta MEDICOM", async () => {
+  const globalStyles = await readFile(new URL("styles.css", sourcePath), "utf8");
+  const profileStyles = await readFile(
+    new URL("features/profile/profile.css", sourcePath),
+    "utf8",
+  );
+  assert.match(globalStyles, /:root\s*\{[^}]*--navy:\s*#003b71/);
+  assert.match(globalStyles, /:root\s*\{[^}]*--cyan:\s*#009fd9/);
+  assert.match(profileStyles, /body\.profile-page/);
+  assert.match(profileStyles, /background:\s*#f4f9fc/);
+  assert.doesNotMatch(profileStyles, /backdrop-filter|rgba\(255,\s*255,\s*255,\s*0\.(7|8)/);
 });

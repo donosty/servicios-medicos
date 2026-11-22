@@ -8,8 +8,8 @@ export const getAvailability = async (request, response, next) => {
       return response.status(400).json({ message: 'Indica un médico y una fecha válidos.' });
     }
 
-    const { doctorId, date } = parsed.data;
-    const times = await getAvailableTimes(doctorId, date);
+    const { doctorId, date, excludeAppointmentId } = parsed.data;
+    const times = await getAvailableTimes(doctorId, date, excludeAppointmentId);
     return response.json({ times });
   } catch (error) {
     return next(error);
