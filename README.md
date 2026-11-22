@@ -123,6 +123,29 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build --forc
 El frontend de desarrollo utiliza el puerto `4200`; el frontend de producción
 utiliza NGINX en el puerto `80`.
 
+### CI/CD con GitHub Actions
+
+El flujo `.github/workflows/ci-cd.yml` ejecuta las pruebas del backend y del
+frontend dentro de Docker para cada Pull Request hacia `main` y para cada push
+a `main`.
+
+Solo después de que las pruebas sean exitosas se construyen y publican las
+imágenes de producción. Cada imagen recibe dos etiquetas:
+
+- `latest`
+- `sha-<codigo-SHA-del-commit>`
+
+Las imágenes se publican en Docker Hub con los nombres:
+
+- `<usuario>/servicios-medicos-backend`
+- `<usuario>/servicios-medicos-frontend`
+
+Configura estos secretos en GitHub (`Settings` > `Secrets and variables` >
+`Actions`):
+
+- `DOCKERHUB_USERNAME`: usuario de Docker Hub.
+- `DOCKERHUB_TOKEN`: token de acceso de Docker Hub.
+
 ### API REST de especialidades
 
 La relación inicial entre backend y frontend expone las especialidades activas

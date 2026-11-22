@@ -1,25 +1,37 @@
-FROM node:20.20.2 AS base
+FROM node:20.20.2-slim AS dependencies
 WORKDIR /app
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-FROM base AS development
+FROM node:20.20.2-slim AS development
+WORKDIR /app
+COPY package*.json ./
 RUN npm ci
 COPY . .
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
-FROM base AS build
+FROM node:20.20.2-slim AS test
+WORKDIR /app
+COPY package*.json ./
 RUN npm ci
-COPY . .
+COPY src ./src
+COPY test ./test
+RUN npm test
+
+FROM node:20.20.2-slim AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY src ./src
 RUN npm run build
 
-FROM node:20.20.2 AS production
+FROM gcr.io/distroless/nodejs20-debian12 AS production
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+COPY package.json ./package.json
 
-USER node
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+CMD ["dist/index.js"]
