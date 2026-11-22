@@ -29,6 +29,7 @@ RUN npm run build
 FROM gcr.io/distroless/nodejs20-debian12 AS production
 WORKDIR /app
 ENV NODE_ENV=production
+LABEL org.opencontainers.image.title="Servicios Médicos Backend"
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./package.json

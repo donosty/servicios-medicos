@@ -23,6 +23,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx:alpine AS production
+LABEL org.opencontainers.image.title="Servicios Médicos Frontend"
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
