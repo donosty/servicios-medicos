@@ -25,6 +25,7 @@
             class="booking-select"
             ng-model="$ctrl.selectedSpecialty"
             ng-change="$ctrl.changeSpecialty()"
+            ng-disabled="$ctrl.confirming"
             ng-options="item.id as item.name for item in $ctrl.specialties"
           >
             <option value="">Selecciona una especialidad</option>
@@ -33,6 +34,10 @@
 
         <section class="booking-section" aria-labelledby="medico-titulo">
           <h2 id="medico-titulo"><span>2</span> Elige al especialista</h2>
+          <p ng-if="$ctrl.loadingDoctors" role="status">Cargando médicos…</p>
+          <p ng-if="$ctrl.selectedSpecialty && !$ctrl.loadingDoctors && !$ctrl.errorMessage && !$ctrl.doctors.length" role="status">
+            No hay médicos disponibles para esta especialidad.
+          </p>
           <div class="doctor-grid">
             <article
               class="doctor-card"
@@ -52,6 +57,7 @@
                   type="button"
                   ng-class="{'doctor-selected': $ctrl.selectedDoctor.id === doctor.id}"
                   ng-click="$ctrl.selectDoctor(doctor)"
+                  ng-disabled="$ctrl.confirming"
                   ng-attr-aria-pressed="{{$ctrl.selectedDoctor.id === doctor.id}}"
                 >
                   {{$ctrl.selectedDoctor.id === doctor.id ? 'Seleccionado' :
@@ -76,6 +82,7 @@
               ng-repeat="date in $ctrl.availableDates track by date.value"
               ng-class="{'is-selected': $ctrl.selectedDate.value === date.value}"
               ng-click="$ctrl.selectDate(date)"
+              ng-disabled="$ctrl.confirming"
               ng-attr-aria-pressed="{{$ctrl.selectedDate.value === date.value}}"
             >
               <span>{{date.day}}</span>
@@ -85,6 +92,11 @@
           </div>
 
           <p class="booking-label">Horario disponible</p>
+          <p ng-if="$ctrl.loadingTimes" role="status">Cargando horarios…</p>
+          <p ng-if="$ctrl.availabilityError" role="alert">{{$ctrl.availabilityError}}</p>
+          <p ng-if="$ctrl.selectedDoctor.id && $ctrl.selectedDate.value && !$ctrl.loadingTimes && !$ctrl.availabilityError && !$ctrl.availableTimes.length" role="status">
+            No hay horarios disponibles para esta fecha.
+          </p>
           <div
             class="time-grid"
             role="radiogroup"
@@ -95,6 +107,7 @@
               ng-repeat="time in $ctrl.availableTimes track by time.value"
               ng-class="{'is-selected': $ctrl.selectedTime === time.value}"
               ng-click="$ctrl.selectTime(time)"
+              ng-disabled="$ctrl.confirming"
               ng-attr-aria-pressed="{{$ctrl.selectedTime === time.value}}"
             >
               {{time.label}}
@@ -102,13 +115,16 @@
           </div>
         </section>
 
-        <section class="booking-section" aria-labelledby="datos-titulo">
+        <section class="booking-section" aria-labelledby="datos-titulo" ng-if="$ctrl.sessionUser">
           <h2 id="datos-titulo"><span>4</span> Tus datos</h2>
           <p class="booking-profile-data">
             La cita se vinculará automáticamente con:
-            <strong>{{$ctrl.profile.fullName || 'Tu perfil'}}</strong>
-            <span>{{$ctrl.profile.email}}</span>
-            <span>{{$ctrl.profile.phone}}</span>
+            <strong>{{$ctrl.sessionUser.fullName}}</strong>
+            <span>{{$ctrl.sessionUser.email}}</span>
+            <span>{{$ctrl.sessionUser.phone}}</span>
+            <a ng-if="!$ctrl.sessionUser.phone && $ctrl.sessionUser.role === 'consumidor'" href="/profile.html">
+              Agrega tu teléfono en Mi perfil
+            </a>
           </p>
         </section>
       </div>
@@ -118,7 +134,7 @@
         <dl>
           <div>
             <dt>Especialidad</dt>
-            <dd>{{$ctrl.selectedSpecialtyName || 'Por seleccionar'}}</dd>
+            <dd>{{$ctrl.selectedSpecialtyName() || 'Por seleccionar'}}</dd>
           </div>
           <div>
             <dt>Médico</dt>
@@ -132,9 +148,9 @@
             <dt>Hora</dt>
             <dd>{{$ctrl.selectedTime || 'Por seleccionar'}}</dd>
           </div>
-          <div ng-if="$ctrl.profile.fullName">
+          <div ng-if="$ctrl.sessionUser">
             <dt>Paciente</dt>
-            <dd>{{$ctrl.profile.fullName}}</dd>
+            <dd>{{$ctrl.sessionUser.fullName}}</dd>
           </div>
         </dl>
         <button
@@ -143,9 +159,12 @@
           ng-disabled="!$ctrl.canConfirm()"
           ng-click="$ctrl.confirm()"
         >
-          Confirmar cita
+          {{$ctrl.confirming ? 'Confirmando…' : 'Confirmar cita'}}
         </button>
-        <p class="booking-assurance">
+        <p class="booking-assurance" ng-if="!$ctrl.sessionUser">
+          Te pediremos iniciar sesión al confirmar la cita.
+        </p>
+        <p class="booking-assurance" ng-if="$ctrl.sessionUser">
           Tus datos se utilizarán únicamente para gestionar tu cita.
         </p>
         <div class="booking-success" ng-if="$ctrl.confirmed" role="status">

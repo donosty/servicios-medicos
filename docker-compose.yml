@@ -10,6 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
     networks:
       - app-network
     healthcheck:

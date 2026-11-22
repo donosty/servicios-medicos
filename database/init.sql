@@ -156,6 +156,9 @@ CREATE TABLE IF NOT EXISTS citas (
 );
 
 ALTER TABLE citas
+    ADD COLUMN IF NOT EXISTS reprogramada_en TIMESTAMPTZ;
+
+ALTER TABLE citas
     ADD COLUMN IF NOT EXISTS id_usuario UUID;
 
 DO $$
@@ -392,6 +395,10 @@ SET nombre = EXCLUDED.nombre,
     descripcion = EXCLUDED.descripcion,
     ruta_icono = EXCLUDED.ruta_icono,
     orden_visualizacion = EXCLUDED.orden_visualizacion;
+
+\ir migrations/precios-servicios.sql
+\ir migrations/catalogo-servicios.sql
+\ir migrations/horarios-servicios.sql
 
 INSERT INTO roles_usuario (codigo, nombre)
 VALUES

@@ -3,30 +3,23 @@
 
   angular
     .module("serviciosMedicosApp")
-    .constant("featuredMedicalServices", [])
-    .run([
-      "api",
-      "featuredMedicalServices",
-      function LoadFeaturedMedicalServices(api, featuredMedicalServices) {
-        api.getMedicalServices()
-          .then(function (response) {
-            featuredMedicalServices.splice(
-              0,
-              featuredMedicalServices.length,
-              ...(response.data.services || []),
-            );
-          })
-          .catch(function () {
-            featuredMedicalServices.splice(0, featuredMedicalServices.length);
-          });
-      },
-    ])
     .component("featuredServices", {
       templateUrl: "/features/services/featured-services.html",
       controller: [
-        "featuredMedicalServices",
-        function FeaturedServicesController(featuredMedicalServices) {
-          this.services = featuredMedicalServices;
+        "api",
+        function FeaturedServicesController(api) {
+          const ctrl = this;
+          ctrl.services = [];
+
+          ctrl.$onInit = function () {
+            api.getMedicalServices()
+              .then(function (response) {
+                ctrl.services = (response.data.services || []).slice(0, 4);
+              })
+              .catch(function () {
+                ctrl.services = [];
+              });
+          };
         },
       ],
     });

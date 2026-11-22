@@ -13,6 +13,7 @@ const Appointment = sequelize.define(
     startAt: { type: DataTypes.DATE, allowNull: false, field: 'inicia_en' },
     endAt: { type: DataTypes.DATE, allowNull: false, field: 'termina_en' },
     statusId: { type: DataTypes.SMALLINT, allowNull: false, field: 'id_estado' },
+    rescheduledAt: { type: DataTypes.DATE, allowNull: true, field: 'reprogramada_en' },
   },
   { tableName: 'citas', timestamps: true, createdAt: 'creado_en', updatedAt: 'actualizado_en' },
 );

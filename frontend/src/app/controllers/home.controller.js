@@ -4,9 +4,9 @@
   angular.module("serviciosMedicosApp").controller("HomeController", [
     "$document",
     "$timeout",
-      "api",
-      "$window",
-      function HomeController($document, $timeout, api, $window) {
+    "api",
+    "$window",
+    function HomeController($document, $timeout, api, $window) {
       const home = this;
       const doc = $document[0];
 
@@ -15,9 +15,11 @@
       home.menuOpen = false;
       home.bookingOpen = false;
       home.bookingSpecialty = "";
+      home.resumeBooking = false;
       home.servicesOpen = false;
       home.blogOpen = false;
       home.aboutOpen = false;
+      home.sessionUser = null;
 
       home.toggleMenu = function () {
         home.menuOpen = !home.menuOpen;
@@ -92,6 +94,7 @@
 
       home.openBooking = function (name) {
         home.bookingOpen = true;
+        home.resumeBooking = false;
         home.servicesOpen = false;
         home.blogOpen = false;
         home.aboutOpen = false;
@@ -123,10 +126,17 @@
         home.filterBy("");
       };
 
-      home.logout = function () {
-        api.logout().finally(function () {
-          $window.location.replace("/login.html");
-        });
+      home.logout = function (event) {
+        const trigger = event.currentTarget;
+        api.logout()
+          .then(function () {
+            home.sessionUser = null;
+            home.returnHome();
+            $timeout(() => doc.querySelector(".brand-link").focus(), 0, false);
+          })
+          .catch(function () {
+            home.showNotice("No fue posible cerrar la sesión.", { currentTarget: trigger });
+          });
       };
 
       home.openServices = function () {
@@ -185,6 +195,18 @@
           false,
         );
       };
+
+      api.getSession().then(function (response) {
+        home.sessionUser = response.data.user;
+      }, angular.noop);
+
+      const url = new URL($window.location.href);
+      if (url.searchParams.get("cita") === "continuar") {
+        url.searchParams.delete("cita");
+        $window.history.replaceState(null, "", url);
+        home.openBooking();
+        home.resumeBooking = true;
+      }
     },
   ]);
 })();

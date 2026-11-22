@@ -10,29 +10,33 @@
           "jul", "ago", "sep", "oct", "nov", "dic",
         ];
         const dayNames = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+        const clinicDate = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/Mexico_City",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+        });
 
         return {
           buildAvailableDates: function () {
             const dates = [];
-            const today = new Date();
+            const parts = Object.fromEntries(
+              clinicDate.formatToParts(new Date()).map((part) => [part.type, part.value]),
+            );
+            const today = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
 
             for (let offset = 1; offset <= 7; offset += 1) {
               const date = new Date(today);
-              date.setDate(today.getDate() + offset);
-              const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, "0");
-              const day = String(date.getDate()).padStart(2, "0");
+              date.setUTCDate(date.getUTCDate() + offset);
+              const day = date.getUTCDate();
+              const month = monthNames[date.getUTCMonth()];
+              const weekday = dayNames[date.getUTCDay()];
               dates.push({
-                value: year + "-" + month + "-" + day,
-                day: dayNames[date.getDay()],
-                dayNumber: String(date.getDate()),
-                month: monthNames[date.getMonth()],
-                label:
-                  dayNames[date.getDay()] +
-                  " " +
-                  date.getDate() +
-                  " de " +
-                  monthNames[date.getMonth()],
+                value: date.toISOString().slice(0, 10),
+                day: weekday,
+                dayNumber: String(day),
+                month: month,
+                label: weekday + " " + day + " de " + month,
               });
             }
 

@@ -9,7 +9,7 @@
         <p class="services-eyebrow">
           Atención integral › Catálogo de servicios médicos
         </p>
-        <h1 id="servicios-medicos-titulo">
+        <h1 id="servicios-medicos-titulo" tabindex="-1">
           Nuestros Servicios Médicos de
           <span>Alta Especialidad</span>
         </h1>
@@ -22,12 +22,12 @@
           <svg aria-hidden="true" width="18" height="18">
             <use href="/assets/ui.svg#search"></use>
           </svg>
-          <span class="visually-hidden">Buscar servicios</span>
+          <span class="visually-hidden">Buscar por nombre, ID o especialidad</span>
           <input
             type="search"
             ng-model="$ctrl.searchText"
             ng-change="$ctrl.filterServices()"
-            placeholder="Buscar servicio, especialidad, médico o estudio clínico..."
+            placeholder="Buscar por nombre, ID o especialidad"
           />
         </label>
       </div>
@@ -43,45 +43,137 @@
       </div>
     </div>
 
-    <div class="services-categories" aria-label="Categorías de servicios">
-      <button
-        type="button"
-        ng-repeat="category in $ctrl.categories track by category"
-        ng-class="{'is-active': $ctrl.selectedCategory === category}"
-        ng-click="$ctrl.selectCategory(category)"
-      >
-        {{category}}
-      </button>
+    <div ng-if="!$ctrl.loading && !$ctrl.loadError && $ctrl.services.length">
+      <div class="services-categories" role="group" aria-label="Categorías de servicios">
+        <button
+          type="button"
+          ng-class="{'is-active': !$ctrl.selectedCategory}"
+          ng-attr-aria-pressed="{{!$ctrl.selectedCategory}}"
+          ng-click="$ctrl.selectCategory('')"
+        >
+          Todos los servicios
+        </button>
+        <button
+          type="button"
+          ng-repeat="category in $ctrl.categories track by category"
+          ng-class="{'is-active': $ctrl.selectedCategory === category}"
+          ng-attr-aria-pressed="{{$ctrl.selectedCategory === category}}"
+          ng-click="$ctrl.selectCategory(category)"
+        >
+          {{category}}
+        </button>
+      </div>
+      <div class="services-filters" ng-form="$ctrl.priceForm">
+        <label>
+          Especialidad
+          <select
+            class="form-select"
+            ng-model="$ctrl.selectedSpecialty"
+            ng-options="specialty.id as specialty.name for specialty in $ctrl.specialties"
+            ng-change="$ctrl.filterServices()"
+          >
+            <option value="">Todas las especialidades</option>
+          </select>
+        </label>
+        <label>
+          Disponibilidad
+          <select
+            class="form-select"
+            ng-model="$ctrl.selectedAvailability"
+            ng-change="$ctrl.filterServices()"
+            aria-describedby="services-availability-period"
+          >
+            <option value="">Cualquier disponibilidad</option>
+            <option value="available">Con horarios libres</option>
+            <option value="unavailable">Sin horarios libres</option>
+          </select>
+        </label>
+        <label>
+          Precio mínimo (MXN)
+          <input
+            class="form-control"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Sin mínimo"
+            ng-model="$ctrl.minPrice"
+            ng-change="$ctrl.filterServices()"
+          />
+        </label>
+        <label>
+          Precio máximo (MXN)
+          <input
+            class="form-control"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Sin máximo"
+            ng-model="$ctrl.maxPrice"
+            ng-change="$ctrl.filterServices()"
+          />
+        </label>
+        <p class="services-price-error" ng-if="$ctrl.hasInvalidPrice()" role="alert">
+          Usa precios mayores o iguales a cero. El precio mínimo debe ser menor o igual al máximo.
+        </p>
+        <p id="services-availability-period">Se consultan los próximos 7 días, a partir de mañana.</p>
+      </div>
     </div>
 
-    <div class="services-grid">
+    <p class="services-empty" ng-if="$ctrl.loading" role="status">
+      Cargando servicios…
+    </p>
+    <div class="services-empty" ng-if="!$ctrl.loading && $ctrl.loadError">
+      <p role="alert">No fue posible cargar los servicios.</p>
+      <button type="button" class="btn btn-outline-primary" ng-click="$ctrl.loadServices()">Reintentar</button>
+    </div>
+
+    <div class="services-grid" ng-if="!$ctrl.loading && !$ctrl.loadError && !$ctrl.hasInvalidPrice()">
       <article
         class="service-card"
         ng-repeat="service in $ctrl.visibleServices track by service.id"
       >
         <div class="service-card-heading">
-          <span class="service-icon" aria-hidden="true">{{service.icon}}</span>
-          <span class="service-category">{{service.category}}</span>
+          <span class="service-icon" ng-if="service.symbol" aria-hidden="true">{{service.symbol}}</span>
+          <span class="service-category" ng-if="service.category">{{service.category}}</span>
         </div>
         <h2>{{service.title}}</h2>
-        <p>{{service.description}}</p>
-        <ul>
+        <p>{{service.catalogDescription}}</p>
+        <ul ng-if="service.features.length">
           <li ng-repeat="feature in service.features track by $index">
             <span aria-hidden="true">✓</span>{{feature}}
           </li>
         </ul>
+        <dl class="service-details">
+          <div>
+            <dt>ID</dt>
+            <dd>{{service.serviceId}}</dd>
+          </div>
+          <div>
+            <dt>Precio</dt>
+            <dd class="service-price" ng-if="service.price != null">{{service.price | currency:'$'}} MXN</dd>
+            <dd ng-if="service.price == null">Sin precio publicado</dd>
+          </div>
+          <div>
+            <dt>Disponibilidad</dt>
+            <dd ng-class="{'service-available': service.available}">
+              {{service.available ? 'Horarios libres' : (service.id === 'urgencias' ? 'Atención presencial' : 'Sin horarios libres')}}
+            </dd>
+          </div>
+        </dl>
         <button
           type="button"
           class="service-book"
-          ng-click="$ctrl.onBook({name: service.specialtyName, $event: $event})"
+          ng-if="service.available && service.bookingSpecialty"
+          ng-attr-aria-label="Ver horarios para {{service.title}}"
+          ng-click="$ctrl.onBook({name: service.bookingSpecialty, $event: $event})"
         >
-          <span aria-hidden="true">▣</span> Agendar servicio
+          <span aria-hidden="true">▣</span> Ver horarios
           <span aria-hidden="true">→</span>
         </button>
       </article>
     </div>
 
-    <p class="services-empty" ng-if="$ctrl.visibleServices.length === 0">
+    <p class="services-empty" ng-if="!$ctrl.loading && !$ctrl.loadError && !$ctrl.hasInvalidPrice() && !$ctrl.visibleServices.length" role="status">
       No encontramos servicios con esos criterios.
     </p>
 

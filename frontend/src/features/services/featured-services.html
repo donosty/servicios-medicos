@@ -16,6 +16,9 @@
         </span>
         <h3>{{service.name}}</h3>
         <p>{{service.description}}</p>
+        <p class="featured-service-price" ng-if="service.price != null">
+          {{service.price | currency:'$'}} MXN
+        </p>
       </article>
     </div>
   </div>

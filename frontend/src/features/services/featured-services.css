@@ -89,6 +89,12 @@ featured-services {
   line-height: 1.45;
 }
 
+.featured-service-card .featured-service-price {
+  margin-top: 12px;
+  color: var(--navy);
+  font-weight: 800;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .featured-service-card {
     transition: none;
