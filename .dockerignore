@@ -1,0 +1,16 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+deploy/.env.production.example
+**/node_modules
+**/dist
+**/coverage
+**/.nyc_output
+**/.angular
+.vscode
+.idea
+*.pem
+*.key
+*.log

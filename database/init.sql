@@ -407,6 +407,32 @@ VALUES
 ON CONFLICT (codigo) DO UPDATE
 SET nombre = EXCLUDED.nombre;
 
+\if :{?ADMIN_NAME}
+\else
+\getenv ADMIN_NAME ADMIN_NAME
+\endif
+\if :{?ADMIN_EMAIL}
+\else
+\getenv ADMIN_EMAIL ADMIN_EMAIL
+\endif
+\if :{?ADMIN_PASSWORD}
+\else
+\getenv ADMIN_PASSWORD ADMIN_PASSWORD
+\endif
+
+\if :'ADMIN_EMAIL' = ''
+\echo 'ERROR: Define ADMIN_EMAIL antes de inicializar la base de datos.'
+\quit
+\endif
+\if :'ADMIN_PASSWORD' = ''
+\echo 'ERROR: Define ADMIN_PASSWORD antes de inicializar la base de datos.'
+\quit
+\endif
+
+\if :'ADMIN_NAME' = ''
+\set ADMIN_NAME 'Administrador MEDICOM'
+\endif
+
 INSERT INTO usuarios (
     nombre_completo,
     correo,
@@ -415,10 +441,10 @@ INSERT INTO usuarios (
     id_rol
 )
 SELECT
-    'Administrador MEDICOM',
-    'admin@medicom.com',
+    :'ADMIN_NAME',
+    :'ADMIN_EMAIL',
     NULL,
-    crypt('Admin123!', gen_salt('bf', 12)),
+    crypt(:'ADMIN_PASSWORD', gen_salt('bf', 12)),
     id_rol
 FROM roles_usuario
 WHERE codigo = 'administrador'
