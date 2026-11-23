@@ -50,6 +50,24 @@
               "Acompañamiento personalizado para una alimentación saludable.",
             icon: "/assets/icons/nutricion.webp",
           },
+          {
+            id: "cirugia-maxilofacial",
+            name: "Cirugía Maxilofacial",
+            description: "Atención quirúrgica de boca, cara, mandíbula y estructuras relacionadas.",
+            icon: "/assets/icons/cirugia-maxilofacial.webp",
+          },
+          {
+            id: "cirugia-plastica",
+            name: "Cirugía Plástica",
+            description: "Procedimientos reconstructivos y estéticos con atención especializada.",
+            icon: "/assets/icons/cirugia-plastica.webp",
+          },
+          {
+            id: "psiquiatria",
+            name: "Psiquiatría",
+            description: "Evaluación y tratamiento especializado de la salud mental.",
+            icon: "/assets/icons/psiquiatria.webp",
+          },
         ];
 
         api

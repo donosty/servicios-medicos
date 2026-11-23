@@ -5,31 +5,24 @@
     .module("serviciosMedicosApp")
     .component("specialtyList", {
       templateUrl: "/features/specialties/specialties.html",
-      bindings: { query: "<", onBook: "&", onClear: "&" },
+      bindings: { onBook: "&", onCatalog: "&" },
       controller: [
         "$element",
         "$scope",
         "$timeout",
         "medicalSpecialties",
-        "stringUtils",
-        function SpecialtyListController($element, $scope, $timeout, medicalSpecialties, stringUtils) {
+        function SpecialtyListController($element, $scope, $timeout, medicalSpecialties) {
           const ctrl = this;
           ctrl.canMoveLeft = false;
           ctrl.canMoveRight = false;
           ctrl.currentPage = 0;
 
-          function applyFilter() {
-            const term = stringUtils.normalizeName(ctrl.query);
-            ctrl.filtered = medicalSpecialties.filter(function (item) {
-              return stringUtils.normalizeName(item.name).includes(term);
-            });
-            $timeout(ctrl.updateCarouselState);
-          }
-
-          ctrl.$onChanges = applyFilter;
+          ctrl.specialties = medicalSpecialties;
           $scope.$watchCollection(function () {
             return medicalSpecialties;
-          }, applyFilter);
+          }, function () {
+            $timeout(ctrl.updateCarouselState);
+          });
 
           ctrl.requestBooking = function (specialty, event) {
             ctrl.onBook({ name: specialty.name, $event: event });
