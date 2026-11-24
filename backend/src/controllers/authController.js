@@ -1,9 +1,19 @@
-import { registerSchema, loginSchema } from '../validators/authValidator.js';
+import {
+  registerSchema,
+  loginSchema,
+  passwordResetRequestSchema,
+  passwordResetTokenSchema,
+  passwordResetSchema,
+} from '../validators/authValidator.js';
 import {
   registerUser,
   loginUser,
   getSessionUser,
   logoutSession,
+  requestPasswordReset,
+  validatePasswordResetToken,
+  cancelPasswordResetToken,
+  resetPassword,
   COOKIE_NAME,
 } from '../services/authService.js';
 import {
@@ -61,6 +71,56 @@ export const logout = async (request, response, next) => {
     await logoutSession(readCookie(request, COOKIE_NAME));
     clearSessionCookie(response);
     return response.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const requestPasswordResetController = async (request, response, next) => {
+  try {
+    const parsed = passwordResetRequestSchema.safeParse(request.body);
+    if (parsed.success) {
+      await requestPasswordReset(parsed.data.email);
+    }
+  } catch (error) {
+    console.error('No fue posible procesar la solicitud de restablecimiento:', error.message);
+  }
+  return response.status(200).json({
+    message: 'Si existe una cuenta con este correo, se te enviará un enlace para restablecer la contraseña.',
+  });
+};
+
+export const validatePasswordResetController = async (request, response, next) => {
+  try {
+    const parsed = passwordResetTokenSchema.safeParse(request.query);
+    if (!parsed.success) {
+      return response.status(410).json({ message: 'El enlace de restablecimiento no es válido.' });
+    }
+    await validatePasswordResetToken(parsed.data.token);
+    return response.json({ valid: true });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const cancelPasswordResetController = async (request, response, next) => {
+  try {
+    const parsed = passwordResetTokenSchema.safeParse(request.body);
+    if (parsed.success) await cancelPasswordResetToken(parsed.data.token);
+    return response.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const resetPasswordController = async (request, response, next) => {
+  try {
+    const parsed = passwordResetSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return response.status(400).json({ message: 'Ingresa una contraseña válida.' });
+    }
+    await resetPassword(parsed.data.token, parsed.data.password);
+    return response.json({ message: 'Contraseña restablecida correctamente.' });
   } catch (error) {
     return next(error);
   }

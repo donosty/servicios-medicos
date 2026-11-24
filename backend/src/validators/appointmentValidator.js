@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
+const uuidSchema = z.string().regex(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+);
+
 export const availabilitySchema = z.object({
-  doctorId: z.string().uuid(),
+  doctorId: uuidSchema,
   date: z.string().date(),
-  excludeAppointmentId: z.string().uuid().optional(),
+  excludeAppointmentId: uuidSchema.optional(),
 });
 
 export const appointmentSchema = availabilitySchema.extend({

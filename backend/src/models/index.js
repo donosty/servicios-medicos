@@ -7,6 +7,7 @@ import Patient from './Patient.js';
 import AppointmentStatus from './AppointmentStatus.js';
 import Appointment from './Appointment.js';
 import AppointmentRegistration from './AppointmentRegistration.js';
+import AppointmentHistory from './AppointmentHistory.js';
 import ServicioMedico from './ServicioMedico.js';
 import ServiceSpecialty from './ServiceSpecialty.js';
 import RolUsuario from './RolUsuario.js';
@@ -44,6 +45,8 @@ Appointment.belongsTo(Doctor, { as: 'medico', foreignKey: 'doctorId', targetKey:
 Appointment.belongsTo(MedicalSpecialty, { as: 'especialidad', foreignKey: 'specialtyId', targetKey: 'specialtyId' });
 Appointment.belongsTo(AppointmentStatus, { as: 'estado', foreignKey: 'statusId', targetKey: 'statusId' });
 Appointment.belongsTo(Patient, { as: 'paciente', foreignKey: 'patientId', targetKey: 'patientId' });
+AppointmentHistory.belongsTo(Appointment, { as: 'cita', foreignKey: 'appointmentId', targetKey: 'appointmentId' });
+AppointmentHistory.belongsTo(Usuario, { as: 'usuario', foreignKey: 'userId', targetKey: 'userId' });
 
 export {
   sequelize,
@@ -55,6 +58,7 @@ export {
   AppointmentStatus,
   Appointment,
   AppointmentRegistration,
+  AppointmentHistory,
   ServicioMedico,
   ServiceSpecialty,
   RolUsuario,

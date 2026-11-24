@@ -234,10 +234,30 @@ body.profile-page .profile-layout {
   padding: 8px 10px;
 }
 
+.reschedule-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  white-space: nowrap;
+}
+
 .reschedule-toggle:disabled,
 .reschedule-confirm:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.reschedule-unavailable {
+  max-width: 220px;
+  border: 1px solid #bfd3df;
+  border-radius: 999px;
+  background: #fff;
+  color: #587080;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .reschedule-editor {

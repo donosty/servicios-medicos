@@ -62,7 +62,7 @@ jobs:
           file: ./backend/Dockerfile
           target: production
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-backend:latest
@@ -81,7 +81,7 @@ jobs:
           file: ./frontend/Dockerfile
           target: production
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-frontend:latest
@@ -99,7 +99,7 @@ jobs:
           context: .
           file: ./deploy/migrations/Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-migrations:latest
@@ -111,61 +111,110 @@ jobs:
           cache-from: type=gha,scope=migrations
           cache-to: type=gha,mode=max,scope=migrations
 
-      - name: Configurar acceso SSH a OCI
-        env:
-          OCI_DEPLOY_SSH_KEY: ${{ secrets.OCI_DEPLOY_SSH_KEY }}
-        run: |
-          mkdir -p "$HOME/.ssh"
-          chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$OCI_DEPLOY_SSH_KEY" > "$HOME/.ssh/oci_deploy"
-          chmod 600 "$HOME/.ssh/oci_deploy"
+      - name: Autenticar con Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-      - name: Desplegar en OCI Compute
+      - name: Configurar Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Preparar configuracion de GCP
         env:
-          OCI_DEPLOY_HOST: ${{ secrets.OCI_DEPLOY_HOST }}
-          OCI_DEPLOY_USER: ${{ secrets.OCI_DEPLOY_USER }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
           CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
           ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PASSWORD_RESET_SECRET: ${{ secrets.PASSWORD_RESET_SECRET }}
+          APP_PUBLIC_URL: ${{ secrets.APP_PUBLIC_URL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
         run: |
-          cat > "$RUNNER_TEMP/.env.production" <<EOF
-          BACKEND_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-backend:sha-${GITHUB_SHA}
-          FRONTEND_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-frontend:sha-${GITHUB_SHA}
-          MIGRATIONS_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-migrations:sha-${GITHUB_SHA}
-          DATABASE_URL=${DATABASE_URL}
-          DB_SSL=true
-          CORS_ORIGINS=${CORS_ORIGINS}
-          ADMIN_NAME=${ADMIN_NAME:-Administrador MEDICOM}
-          ADMIN_EMAIL=${ADMIN_EMAIL}
-          ADMIN_PASSWORD=${ADMIN_PASSWORD}
-          EOF
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.parse import quote
 
+          db_user = os.environ["DB_USER"]
+          db_password = os.environ["DB_PASSWORD"]
+          db_name = os.environ["DB_NAME"]
+          sha = os.environ["GITHUB_SHA"]
+          dockerhub = os.environ["DOCKERHUB_USERNAME"]
+          values = {
+              "BACKEND_IMAGE": f"{dockerhub}/servicios-medicos-backend:sha-{sha}",
+              "FRONTEND_IMAGE": f"{dockerhub}/servicios-medicos-frontend:sha-{sha}",
+              "MIGRATIONS_IMAGE": f"{dockerhub}/servicios-medicos-migrations:sha-{sha}",
+              "DB_USER": db_user,
+              "DB_PASSWORD": db_password,
+              "DB_NAME": db_name,
+              "DATABASE_URL": (
+                  f"postgresql://{quote(db_user, safe='')}:{quote(db_password, safe='')}"
+                  f"@db:5432/{quote(db_name, safe='')}"
+              ),
+              "CORS_ORIGINS": os.environ["CORS_ORIGINS"],
+              "ADMIN_NAME": os.environ.get("ADMIN_NAME") or "Administrador MEDICOM",
+              "ADMIN_EMAIL": os.environ["ADMIN_EMAIL"],
+              "ADMIN_PASSWORD": os.environ["ADMIN_PASSWORD"],
+              "PASSWORD_RESET_SECRET": os.environ["PASSWORD_RESET_SECRET"],
+              "APP_PUBLIC_URL": os.environ["APP_PUBLIC_URL"],
+              "SMTP_HOST": os.environ.get("SMTP_HOST") or "smtp.gmail.com",
+              "SMTP_PORT": os.environ.get("SMTP_PORT") or "465",
+              "SMTP_SECURE": os.environ.get("SMTP_SECURE") or "true",
+              "SMTP_USER": os.environ["SMTP_USER"],
+              "SMTP_PASSWORD": os.environ["SMTP_PASSWORD"],
+              "SMTP_FROM": os.environ.get("SMTP_FROM") or os.environ["SMTP_USER"],
+              "DOCKERHUB_USERNAME": dockerhub,
+              "DOCKERHUB_TOKEN": os.environ["DOCKERHUB_TOKEN"],
+          }
+          with open(os.environ["RUNNER_TEMP"] + "/.env.production", "w", encoding="utf-8") as env_file:
+              for key, value in values.items():
+                  env_file.write(f"{key}={json.dumps(value)}\n")
+          PY
           chmod 600 "$RUNNER_TEMP/.env.production"
 
-          scp -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
+      - name: Desplegar en Compute Engine
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_ZONE: ${{ secrets.GCP_ZONE }}
+          GCP_VM_NAME: ${{ secrets.GCP_VM_NAME }}
+        run: |
+          gcloud compute scp \
             deploy/docker-compose.prod.yml \
-            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}:~/docker-compose.prod.yml"
-          scp -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
-            "$RUNNER_TEMP/.env.production" \
-            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}:~/.env.production"
+            "$GCP_VM_NAME:/tmp/docker-compose.prod.yml" \
+            --project="$GCP_PROJECT_ID" \
+            --zone="$GCP_ZONE" \
+            --tunnel-through-iap
 
-          ssh -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
-            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}" \
-            "cd ~ && \
-             mkdir -p /opt/servicios-medicos && \
-             mv ~/docker-compose.prod.yml /opt/servicios-medicos/docker-compose.prod.yml && \
-             mv ~/.env.production /opt/servicios-medicos/.env.production && \
-             chmod 600 /opt/servicios-medicos/.env.production && \
-             cd /opt/servicios-medicos && \
-             if [ -n '${DOCKERHUB_TOKEN}' ]; then printf '%s' '${DOCKERHUB_TOKEN}' | docker login -u '${DOCKERHUB_USERNAME}' --password-stdin; fi && \
-             docker compose --env-file .env.production -f docker-compose.prod.yml pull && \
-             docker compose --env-file .env.production -f docker-compose.prod.yml run --rm migrations && \
-             docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans backend frontend && \
-             docker image prune -f"
+          gcloud compute scp \
+            "$RUNNER_TEMP/.env.production" \
+            "$GCP_VM_NAME:/tmp/.env.production" \
+            --project="$GCP_PROJECT_ID" \
+            --zone="$GCP_ZONE" \
+            --tunnel-through-iap
+
+          gcloud compute scp \
+            deploy/gcp/deploy.sh \
+            "$GCP_VM_NAME:/tmp/deploy.sh" \
+            --project="$GCP_PROJECT_ID" \
+            --zone="$GCP_ZONE" \
+            --tunnel-through-iap
+
+          gcloud compute ssh "$GCP_VM_NAME" \
+            --project="$GCP_PROJECT_ID" \
+            --zone="$GCP_ZONE" \
+            --tunnel-through-iap \
+            --command="sudo install -d -m 0750 /opt/servicios-medicos && sudo chmod 0755 /tmp/deploy.sh && sudo /tmp/deploy.sh"
 
       - name: Verificar imagen backend publicada
         run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-backend:sha-${{ github.sha }}

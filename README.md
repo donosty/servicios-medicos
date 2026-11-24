@@ -20,8 +20,8 @@ panel administrativo y publicación automatizada de contenedores.
 | Docker | Empaquetado reproducible | Aislamiento de dependencias y consistencia entre desarrollo y producción |
 | Docker Hub | Registro de imágenes | Distribución versionada de backend, frontend y migraciones |
 | GitHub Actions | Integración y despliegue | Pruebas automáticas, publicación de imágenes y despliegue por commits |
-| OCI Compute | Plataforma de producción | Ejecución de Docker Compose en una instancia de cómputo |
-| OCI Database with PostgreSQL | Base administrada | Respaldos, disponibilidad y administración operativa de PostgreSQL |
+| Google Compute Engine | Plataforma de producción | Ejecución de Docker Compose en una instancia Ubuntu |
+| PostgreSQL 16 en Docker | Base de datos | Persistencia local con volumen administrado por la instancia |
 
 ## Arquitectura
 
@@ -31,15 +31,15 @@ Internet
    +--> Frontend NGINX
    |      +--> Archivos estáticos AngularJS
    |
-   +--> OCI Load Balancer /api
+   +--> Compute Engine / NGINX
           |
-          +--> Servicio backend Express
+          +--> Backend Express /api
                  |
-                 +--> PostgreSQL administrado
+                 +--> PostgreSQL 16 en Docker
 ```
 
 El frontend consume la API mediante rutas relativas `/api`. En producción,
-OCI Load Balancer conserva el prefijo `/api` y lo dirige al backend. Esto
+NGINX conserva el prefijo `/api` y lo dirige al backend. Esto
 permite usar el mismo origen HTTPS para HTML, JavaScript y cookies HttpOnly.
 
 El backend usa Helmet para cabeceras de seguridad, CORS restringido a los
@@ -51,7 +51,7 @@ reservas simultáneas del mismo médico y horario.
 
 - **Frontend:** interfaz AngularJS compilada como archivos estáticos.
 - **Backend:** API Express separada de la interfaz.
-- **Base de datos:** esquema SQL y migraciones idempotentes.
+- **Base de datos:** esquema SQL y migraciones idempotentes mediante un manifiesto único compartido por local y producción.
 - **Autenticación:** contraseñas cifradas con bcrypt y sesiones mediante cookie.
 - **Administrador:** catálogo, horarios y estados de citas.
 - **Despliegue:** imágenes inmutables por SHA publicados desde GitHub Actions.
@@ -80,9 +80,13 @@ reservas simultáneas del mismo médico y horario.
 │   └── Dockerfile
 ├── database/
 │   ├── init.sql
+│   ├── migrate.sql
 │   └── migrations/
 ├── deploy/
-│   ├── app.yaml
+│   ├── docker-compose.prod.yml
+│   ├── gcp/
+│   │   ├── startup.sh
+│   │   └── deploy.sh
 │   ├── backend/Dockerfile
 │   ├── frontend/Dockerfile
 │   ├── frontend/nginx.conf
@@ -122,7 +126,7 @@ Publicar latest y sha-<commit> en Docker Hub
 Ejecutar migraciones
         |
         v
-Desplegar backend y frontend en OCI Compute
+Desplegar backend y frontend en Google Compute Engine
 ```
 
 Las imágenes se publican con dos tags:
@@ -139,7 +143,7 @@ Este esquema permite reproducibilidad y retroceso a una imagen determinada.
 - Los secretos no se escriben en imágenes ni en el repositorio.
 - Las sesiones usan cookies HttpOnly y `Secure` en producción.
 - CORS se restringe mediante `CORS_ORIGINS`.
-- PostgreSQL administrado requiere SSL.
+- PostgreSQL se comunica dentro de la red privada de Docker Compose.
 - Las rutas administrativas exigen sesión y rol de administrador.
 - El pipeline de CI verifica las pruebas antes de publicar imágenes.
 
@@ -147,7 +151,7 @@ Este esquema permite reproducibilidad y retroceso a una imagen determinada.
 
 Las variables de configuración se describen en
 [`deploy/.env.production.example`](deploy/.env.production.example). Los valores
-reales deben configurarse como secretos en OCI Vault o GitHub Actions.
+reales deben configurarse como secretos en GCP Secret Manager o GitHub Actions.
 
 Secretos mínimos:
 
@@ -155,21 +159,32 @@ Secretos mínimos:
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 - `CORS_ORIGINS`
-- `DATABASE_URL`
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
-- `OCI_DEPLOY_HOST`
-- `OCI_DEPLOY_USER`
-- `OCI_DEPLOY_SSH_KEY`
+- `GCP_PROJECT_ID`
+- `GCP_ZONE`
+- `GCP_VM_NAME`
+- `GCP_SERVICE_ACCOUNT_KEY`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `PASSWORD_RESET_SECRET`
+- `APP_PUBLIC_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM`
 
 ## Plan de despliegue
 
-1. Configurar OCI Database with PostgreSQL.
+1. Crear una VM Ubuntu en Compute Engine.
 2. Crear los secretos de administración y CORS.
 3. Configurar Docker Hub y sus secretos de GitHub.
 4. Publicar las imágenes mediante GitHub Actions.
-5. Ejecutar el job previo al despliegue para inicializar o migrar PostgreSQL.
-6. Actualizar OCI Compute con las imágenes identificadas por SHA.
+5. Desplegar mediante IAP con las imágenes identificadas por SHA.
+6. Ejecutar migraciones antes de iniciar backend y frontend.
 7. Verificar `/health` y `/api`.
 8. Confirmar login, registro, perfil y administración.
 

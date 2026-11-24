@@ -85,8 +85,10 @@
                 data-doctor-id="${escapeHtml(appointment.doctorId)}"
                 data-date="${escapeHtml(appointment.date)}"
                 data-time="${escapeHtml(appointment.time)}"
+                aria-expanded="false"
+                aria-controls="reschedule-${escapeHtml(appointment.appointmentId)}"
               >
-                Cambiar horario
+                Editar cita
               </button>
               <div class="reschedule-editor" id="reschedule-${escapeHtml(appointment.appointmentId)}" hidden>
                 <label>
@@ -108,7 +110,15 @@
                 <button type="button" class="reschedule-confirm" disabled>Confirmar cambio</button>
                 <p class="reschedule-message" role="alert"></p>
               </div>
-            ` : ""}
+            ` : `
+              <span class="reschedule-unavailable">
+                ${appointment.rescheduled
+                  ? "Cita ya reprogramada"
+                  : appointment.statusCode === "confirmada"
+                    ? "Cambio no disponible a menos de 24 horas"
+                    : "Solo las citas confirmadas pueden editarse"}
+              </span>
+            `}
           </div>
         </article>
       `).join("") +
@@ -208,7 +218,11 @@
       scheduledPanel.querySelectorAll(".reschedule-editor").forEach((item) => {
         item.hidden = true;
       });
+      scheduledPanel.querySelectorAll(".reschedule-toggle").forEach((button) => {
+        button.setAttribute("aria-expanded", "false");
+      });
       editor.hidden = isOpen;
+      toggle.setAttribute("aria-expanded", String(!isOpen));
       if (!isOpen) await loadRescheduleTimes(editor.closest(".appointment-item"));
       return;
     }

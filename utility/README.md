@@ -103,28 +103,34 @@ docker build --target test --tag servicios-medicos-frontend:test ./frontend
 docker build --file deploy/migrations/Dockerfile --tag servicios-medicos-migrations:test .
 ```
 
-## Base de datos
+## Base de datos y migraciones
 
-`database/init.sql` crea el esquema y los datos iniciales la primera vez que
-PostgreSQL crea su volumen.
+`database/migrate.sql` es el manifiesto único de migraciones. Ejecuta el
+esquema y los datos iniciales de `database/init.sql`, seguido de todas las
+migraciones de `database/migrations/` en el orden definido en ese archivo.
 
-Las variables `ADMIN_*` deben proporcionarse antes de la inicialización. No
-hay credenciales administrativas predeterminadas ni almacenadas en el repositorio.
+El servicio `migrations` utiliza el mismo ejecutor en local y producción.
+Docker Compose espera a que PostgreSQL esté disponible, ejecuta las
+migraciones y solo entonces inicia el backend. Esto también aplica sobre un
+volumen PostgreSQL ya existente; no depende de que el directorio
+`docker-entrypoint-initdb.d` se ejecute por primera vez.
 
-Para inicializar nuevamente desde cero:
+Las variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` son obligatorias para crear
+el administrador inicial. No hay credenciales administrativas predeterminadas
+ni almacenadas en el repositorio.
+
+Para volver a ejecutar manualmente el mismo conjunto de migraciones:
+
+```sh
+docker compose run --rm migrations
+```
+
+Para inicializar nuevamente desde cero (elimina los datos existentes):
 
 ```sh
 docker compose down -v
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
-
-Este comando elimina los datos de PostgreSQL.
-
-## Migraciones existentes
-
-Las migraciones adicionales están en `database/migrations/`. En el despliegue
-de producción se ejecutan mediante la imagen
-`servicios-medicos-migrations` antes de iniciar los servicios.
 
 ## CI/CD con GitHub Actions
 
@@ -132,30 +138,41 @@ El workflow:
 
 1. Ejecuta las pruebas del backend y frontend.
 2. Construye y prueba la imagen de migraciones.
-3. Publica tres imágenes para `amd64` y `arm64` en Docker Hub.
-4. Despliega el commit en OCI Compute mediante SSH.
+3. Publica tres imágenes para `amd64` en Docker Hub.
+4. Despliega el commit en Google Compute Engine mediante IAP.
 5. Ejecuta las migraciones antes de iniciar backend y frontend.
 
 Secretos requeridos en GitHub:
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
-- `OCI_DEPLOY_HOST`
-- `OCI_DEPLOY_USER`
-- `OCI_DEPLOY_SSH_KEY`
-- `DATABASE_URL`
+- `GCP_PROJECT_ID`
+- `GCP_ZONE`
+- `GCP_VM_NAME`
+- `GCP_SERVICE_ACCOUNT_KEY`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `PASSWORD_RESET_SECRET`
+- `APP_PUBLIC_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM`
 - `CORS_ORIGINS`
 - `ADMIN_NAME`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 
-## Uso manual de las imágenes en OCI Compute
+## Uso manual de las imágenes en Google Compute Engine
 
-Docker Hub no necesita cambios adicionales para que OCI pueda ejecutar las
-imágenes. Las imágenes deben publicar una variante compatible con la
-arquitectura de la instancia OCI, preferiblemente `amd64` y `arm64`.
+Docker Hub no necesita cambios adicionales para que GCP pueda ejecutar las
+imágenes. Las imágenes deben publicar una variante `linux/amd64`, compatible
+con las VM tradicionales de Compute Engine.
 
-En la instancia OCI, instala Docker Engine y Docker Compose v2. Después copia
+En la instancia GCP, instala Docker Engine y Docker Compose v2. Después copia
 [`deploy/docker-compose.prod.yml`](../deploy/docker-compose.prod.yml) y crea
 `/opt/servicios-medicos/.env.production` con la configuración real:
 
@@ -163,24 +180,62 @@ En la instancia OCI, instala Docker Engine y Docker Compose v2. Después copia
 BACKEND_IMAGE=tu-usuario/servicios-medicos-backend:latest
 FRONTEND_IMAGE=tu-usuario/servicios-medicos-frontend:latest
 MIGRATIONS_IMAGE=tu-usuario/servicios-medicos-migrations:latest
-DATABASE_URL=postgresql://usuario:contraseña@host:5432/base?sslmode=require
-DB_SSL=true
+DB_USER=servicios_medicos
+DB_PASSWORD=una-contraseña-secreta
+DB_NAME=servicios_medicos
+DATABASE_URL=postgresql://servicios_medicos:una-contraseña-secreta@db:5432/servicios_medicos
 CORS_ORIGINS=https://tudominio.com
 ADMIN_NAME=Administrador MEDICOM
 ADMIN_EMAIL=admin@tudominio.com
 ADMIN_PASSWORD=una-contraseña-secreta
 ```
 
-Para asegurar que OCI despliegue exactamente el commit probado, sustituye
+Para asegurar que GCP despliegue exactamente el commit probado, sustituye
 `latest` por `sha-<SHA-del-commit>` en las tres variables.
 
-Si los repositorios de Docker Hub son privados, inicia sesión una vez en OCI:
+Si los repositorios de Docker Hub son privados, inicia sesión una vez en GCP:
 
 ```sh
 docker login -u tu-usuario
 ```
 
 Para repositorios públicos no es necesario iniciar sesión.
+
+### Preparación inicial de la VM
+
+En una VM Ubuntu de Compute Engine, ejecuta:
+
+```sh
+sudo sh deploy/gcp/startup.sh
+```
+
+Desde el equipo local, la VM debe estar accesible mediante IAP. Configura en GCP:
+
+- IAP API habilitada.
+- Servicio SSH de IAP habilitado.
+- Regla de firewall que permita TCP 22 desde `35.235.240.0/20`.
+- Puerto `80` permitido para el frontend.
+- La cuenta de GitHub Actions autorizada con permisos de Compute Instance
+  Admin y IAP-secured Tunnel User.
+
+Ejemplo de creación manual de una VM económica:
+
+```sh
+gcloud compute instances create servicios-medicos \
+  --zone=us-central1-a \
+  --machine-type=e2-small \
+  --image-family=ubuntu-2404-lts-amd64 \
+  --image-project=ubuntu-os-cloud \
+  --boot-disk-size=30GB \
+  --boot-disk-type=pd-balanced \
+  --tags=http-server \
+  --metadata-from-file=startup-script=deploy/gcp/startup.sh
+```
+
+La VM puede usar PostgreSQL dentro de Docker Compose durante la prueba
+gratuita. Para una implementación permanente se recomienda crear snapshots del
+disco y migrar posteriormente a Cloud SQL si se requiere alta disponibilidad o
+respaldos administrados.
 
 Descarga las imágenes y ejecuta las migraciones antes de iniciar la aplicación:
 
@@ -198,11 +253,10 @@ una nueva versión.
 Verifica el servicio:
 
 ```sh
-curl --fail http://127.0.0.1:3000/health
 curl --fail http://127.0.0.1/health
+docker compose --env-file .env.production -f docker-compose.prod.yml ps
 ```
 
-Expone el puerto 3000 únicamente desde OCI Compute hacia el Load Balancer o
-configura las reglas de red para que el frontend, el backend y PostgreSQL sean
-accesibles solo dentro de la VCN. El Load Balancer debe dirigir `/api` al
-backend y `/` al frontend.
+Expone el puerto 80 públicamente para el frontend. El backend y PostgreSQL
+deben permanecer dentro de la red Docker interna y no publicar sus puertos al
+host. Nginx dirige `/api` al backend y `/` al frontend.

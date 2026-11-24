@@ -7,6 +7,7 @@ import {
   MedicalSpecialty,
   AppointmentStatus,
   AppointmentRegistration,
+  AppointmentHistory,
   DoctorAvailabilitySlot,
 } from '../models/index.js';
 import { Op } from 'sequelize';
@@ -164,6 +165,16 @@ export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
     if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
       throw createError('La nueva fecha y hora no están disponibles.', 422);
     }
+    const originalStartAt = new Date(appointment.startAt);
+    if (
+      startAt.getUTCFullYear() === originalStartAt.getUTCFullYear()
+      && startAt.getUTCMonth() === originalStartAt.getUTCMonth()
+      && startAt.getUTCDate() === originalStartAt.getUTCDate()
+      && startAt.getUTCHours() === originalStartAt.getUTCHours()
+      && startAt.getUTCMinutes() === originalStartAt.getUTCMinutes()
+    ) {
+      throw createError('Selecciona una fecha o hora diferente a la cita actual.', 422);
+    }
 
     const slot = await DoctorAvailabilitySlot.findOne({
       where: {
@@ -188,11 +199,40 @@ export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
     });
     if (conflict) throw createError('El horario seleccionado ya fue registrado.', 409);
 
+    const previousStartAt = new Date(appointment.startAt);
+    const previousEndAt = appointment.endAt ? new Date(appointment.endAt) : new Date(previousStartAt.getTime() + 30 * 60 * 1000);
     const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+    const previousVersion = {
+      startAt: previousStartAt.toISOString(),
+      endAt: previousEndAt.toISOString(),
+      date: previousStartAt.toISOString().slice(0, 10),
+      time: previousStartAt.toISOString().slice(11, 16),
+      doctorId: appointment.doctorId,
+      specialtyId: appointment.specialtyId,
+      statusId: appointment.statusId,
+    };
+    const updatedVersion = {
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      date: data.date,
+      time: data.time,
+      doctorId: appointment.doctorId,
+      specialtyId: appointment.specialtyId,
+      statusId: appointment.statusId,
+    };
+
     await appointment.update({
       startAt,
       endAt,
       rescheduledAt: new Date(now),
+    }, { transaction });
+
+    await AppointmentHistory.create({
+      appointmentId,
+      userId,
+      previousVersion,
+      updatedVersion,
+      createdAt: new Date(now),
     }, { transaction });
 
     const registration = await AppointmentRegistration.findOne({

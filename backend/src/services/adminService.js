@@ -8,6 +8,7 @@ import {
   Appointment,
   AppointmentStatus,
   Patient,
+  AppointmentHistory,
 } from '../models/index.js';
 
 const createError = (message, status) => {
@@ -21,7 +22,7 @@ const toSlug = (value) =>
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export const getAdminData = async () => {
-  const [services, specialties, doctors, appointments, statuses] = await Promise.all([
+  const [services, specialties, doctors, appointments, statuses, appointmentHistory] = await Promise.all([
     ServicioMedico.findAll({
       include: [{
         model: MedicalSpecialty,
@@ -61,6 +62,9 @@ export const getAdminData = async () => {
       order: [['startAt', 'ASC']],
     }),
     AppointmentStatus.findAll({ order: [['statusId', 'ASC']] }),
+    AppointmentHistory.findAll({
+      order: [['createdAt', 'DESC']],
+    }),
   ]);
 
   return {
@@ -100,6 +104,15 @@ export const getAdminData = async () => {
     })),
     appointments: appointments.map((appointment) => {
       const startAt = new Date(appointment.startAt);
+      const history = appointmentHistory
+        .filter((item) => item.appointmentId === appointment.appointmentId)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .map((item) => ({
+          id: item.historyId,
+          changedAt: item.createdAt?.toISOString() ?? null,
+          previous: item.previousVersion,
+          updated: item.updatedVersion,
+        }));
       return {
         id: appointment.appointmentId,
         folio: appointment.folio,
@@ -116,6 +129,7 @@ export const getAdminData = async () => {
         statusCode: appointment.estado?.statusCode ?? '',
         status: appointment.estado?.name ?? 'Sin estado',
         rescheduled: Boolean(appointment.rescheduledAt),
+        rescheduleHistory: history,
       };
     }),
     statuses: statuses.map((status) => ({

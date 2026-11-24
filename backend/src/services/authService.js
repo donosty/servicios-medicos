@@ -1,5 +1,7 @@
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes, randomUUID, createHash } from 'node:crypto';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import {
   sequelize,
   RolUsuario,
@@ -13,6 +15,55 @@ export const SESSION_DAYS = 7;
 
 export const hashSessionToken = (token) =>
   createHash('sha256').update(token).digest('hex');
+
+const PASSWORD_RESET_MINUTES = 30;
+
+const getPasswordResetSecret = () => {
+  const secret = process.env.PASSWORD_RESET_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw createError('PASSWORD_RESET_SECRET no está configurado.', 500);
+  }
+  return secret || 'desarrollo-restablecimiento-local';
+};
+
+const hashPasswordResetToken = (token) =>
+  createHash('sha256').update(token).digest('hex');
+
+const createPasswordResetTransport = () => nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 465),
+  secure: (process.env.SMTP_SECURE || 'true') === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  },
+});
+
+const verifyPasswordResetToken = async (token) => {
+  let payload;
+  try {
+    payload = jwt.verify(token, getPasswordResetSecret());
+  } catch (_error) {
+    throw createError('El enlace de restablecimiento no es válido o expiró.', 410);
+  }
+  if (payload.type !== 'password_reset' || !payload.sub || !payload.jti) {
+    throw createError('El enlace de restablecimiento no es válido.', 410);
+  }
+
+  const user = await Usuario.findByPk(payload.sub);
+  if (
+    !user
+    || !user.isActive
+    || !user.resetTokenActive
+    || user.resetTokenJti !== payload.jti
+    || user.resetTokenHash !== hashPasswordResetToken(token)
+    || !user.resetTokenExpiresAt
+    || user.resetTokenExpiresAt <= new Date()
+  ) {
+    throw createError('El enlace de restablecimiento no está activo.', 410);
+  }
+  return { user, payload };
+};
 
 export const createError = (message, status) => {
   const error = new Error(message);
@@ -115,3 +166,120 @@ export const logoutSession = async (token) => {
   if (!token) return;
   await SesionUsuario.destroy({ where: { tokenHash: hashSessionToken(token) } });
 };
+
+export const requestPasswordReset = async (email) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await Usuario.findOne({
+    where: { email: normalizedEmail, isActive: true },
+  });
+  if (!user) return;
+
+  const jti = randomUUID();
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000);
+  const token = jwt.sign(
+    { type: 'password_reset', sub: user.userId, jti },
+    getPasswordResetSecret(),
+    { expiresIn: `${PASSWORD_RESET_MINUTES}m` },
+  );
+
+  await user.update({
+    resetTokenActive: true,
+    resetTokenHash: hashPasswordResetToken(token),
+    resetTokenJti: jti,
+    resetTokenExpiresAt: expiresAt,
+  });
+
+  try {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+      throw new Error('La configuración SMTP no está completa.');
+    }
+
+    const publicUrl = (process.env.APP_PUBLIC_URL || 'http://localhost:4200').replace(/\/$/, '');
+    const resetUrl = `${publicUrl}/reset-password.html?token=${encodeURIComponent(token)}`;
+    const transporter = createPasswordResetTransport();
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: user.email,
+      subject: 'Restablece tu contraseña de MEDICOM',
+      text:
+        `Hola ${user.fullName},\n\n` +
+        `Usa este enlace para restablecer tu contraseña:\n${resetUrl}\n\n` +
+        `El enlace expirará en ${PASSWORD_RESET_MINUTES} minutos.`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#243447">
+          <h2 style="color:#003b71">Restablecer contraseña</h2>
+          <p>Hola ${user.fullName},</p>
+          <p>Recibimos una solicitud para restablecer tu contraseña en MEDICOM.</p>
+          <p>
+            <a href="${resetUrl}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#009fd9;color:#fff;text-decoration:none">
+              Crear nueva contraseña
+            </a>
+          </p>
+          <p>El enlace expirará en ${PASSWORD_RESET_MINUTES} minutos.</p>
+          <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    await user.update({
+      resetTokenActive: false,
+      resetTokenHash: null,
+      resetTokenJti: null,
+      resetTokenExpiresAt: null,
+    });
+    console.error('No fue posible enviar el correo de restablecimiento:', error.message);
+  }
+};
+
+export const validatePasswordResetToken = async (token) => {
+  await verifyPasswordResetToken(token);
+  return { valid: true };
+};
+
+export const cancelPasswordResetToken = async (token) => {
+  try {
+    const { user } = await verifyPasswordResetToken(token);
+    await user.update({
+      resetTokenActive: false,
+      resetTokenHash: null,
+      resetTokenJti: null,
+      resetTokenExpiresAt: null,
+    });
+  } catch (_error) {
+    return;
+  }
+};
+
+export const resetPassword = async (token, password) =>
+  sequelize.transaction(async (transaction) => {
+    const { user, payload } = await verifyPasswordResetToken(token);
+
+    const lockedUser = await Usuario.findByPk(user.userId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (
+      !lockedUser
+      || !lockedUser.resetTokenActive
+      || lockedUser.resetTokenJti !== payload.jti
+      || lockedUser.resetTokenHash !== hashPasswordResetToken(token)
+      || lockedUser.resetTokenExpiresAt <= new Date()
+    ) {
+      throw createError('El enlace de restablecimiento no está activo.', 410);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await lockedUser.update({
+      passwordHash,
+      resetTokenActive: false,
+      resetTokenHash: null,
+      resetTokenJti: null,
+      resetTokenExpiresAt: null,
+    }, { transaction });
+
+    await SesionUsuario.destroy({
+      where: { userId: lockedUser.userId },
+      transaction,
+    });
+  });
