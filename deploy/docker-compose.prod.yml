@@ -40,6 +40,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - app-network
     healthcheck:
@@ -73,11 +75,11 @@ services:
     networks:
       - app-network
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       PGSSLMODE: disable
       ADMIN_NAME: ${ADMIN_NAME:-Administrador MEDICOM}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
 
 volumes:
   postgres_data:

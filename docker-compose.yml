@@ -7,13 +7,8 @@ services:
       POSTGRES_USER: ${DB_USER:?DB_USER is required}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
-      ADMIN_NAME: ${ADMIN_NAME:-Administrador MEDICOM}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
     networks:
       - app-network
     healthcheck:
@@ -21,6 +16,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  migrations:
+    build:
+      context: .
+      dockerfile: deploy/migrations/Dockerfile
+    container_name: medicom_migrations
+    restart: "no"
+    environment:
+      PGSSLMODE: disable
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      ADMIN_NAME: ${ADMIN_NAME:-Administrador MEDICOM}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
 
   backend:
     build:
@@ -39,6 +56,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     networks:
       - app-network
     healthcheck:

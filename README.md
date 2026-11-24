@@ -51,7 +51,7 @@ reservas simultáneas del mismo médico y horario.
 
 - **Frontend:** interfaz AngularJS compilada como archivos estáticos.
 - **Backend:** API Express separada de la interfaz.
-- **Base de datos:** esquema SQL y migraciones idempotentes.
+- **Base de datos:** esquema SQL y migraciones idempotentes mediante un manifiesto único compartido por local y producción.
 - **Autenticación:** contraseñas cifradas con bcrypt y sesiones mediante cookie.
 - **Administrador:** catálogo, horarios y estados de citas.
 - **Despliegue:** imágenes inmutables por SHA publicados desde GitHub Actions.
@@ -80,6 +80,7 @@ reservas simultáneas del mismo médico y horario.
 │   └── Dockerfile
 ├── database/
 │   ├── init.sql
+│   ├── migrate.sql
 │   └── migrations/
 ├── deploy/
 │   ├── docker-compose.prod.yml

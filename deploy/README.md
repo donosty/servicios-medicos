@@ -12,8 +12,9 @@ sigue siendo el entorno de desarrollo local.
 - `gcp/startup.sh`: instalación de Docker en una VM Ubuntu.
 - `gcp/deploy.sh`: actualización de contenedores en la VM.
 - `frontend/nginx.conf`: servidor estático con proxy `/api`.
-- `migrations/Dockerfile` y `migrations/migrate.sh`: inicialización y migración
+- `migrations/Dockerfile` y `migrations/migrate.sh`: ejecutor de migraciones
   de PostgreSQL.
+- `../database/migrate.sql`: manifiesto único compartido por desarrollo y producción.
 - `.env.production.example`: referencia local de las variables requeridas.
 
 ## Credenciales del administrador
@@ -33,8 +34,9 @@ la contraseña en los logs ni la incluye en la imagen.
 ## Base de datos
 
 PostgreSQL se ejecuta como contenedor dentro de la misma VM y conserva sus datos
-en un volumen Docker. La tarea de migración ejecuta `database/init.sql` y
-después las migraciones necesarias.
+en un volumen Docker. El servicio `migrations` ejecuta
+`database/migrate.sql`, que aplica el esquema inicial y todas las migraciones
+incrementales. El backend depende de que ese servicio termine correctamente.
 
 Antes del primer despliegue:
 

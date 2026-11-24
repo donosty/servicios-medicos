@@ -23,10 +23,6 @@ CREATE TABLE IF NOT EXISTS medicos (
     descripcion TEXT NOT NULL,
     ruta_imagen TEXT,
     esta_activo BOOLEAN NOT NULL DEFAULT TRUE,
-    restablecimiento_token_activo BOOLEAN NOT NULL DEFAULT FALSE,
-    restablecimiento_token_hash TEXT,
-    restablecimiento_jti TEXT,
-    restablecimiento_expira_en TIMESTAMPTZ,
     creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT medicos_titulo_no_vacio CHECK (btrim(titulo_profesional) <> ''),
@@ -98,6 +94,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
     contrasena_hash TEXT NOT NULL,
     id_rol SMALLINT NOT NULL,
     esta_activo BOOLEAN NOT NULL DEFAULT TRUE,
+    restablecimiento_token_activo BOOLEAN NOT NULL DEFAULT FALSE,
+    restablecimiento_token_hash TEXT,
+    restablecimiento_jti TEXT,
+    restablecimiento_expira_en TIMESTAMPTZ,
     creado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT usuarios_paciente_fk
@@ -417,10 +417,6 @@ SET nombre = EXCLUDED.nombre,
     descripcion = EXCLUDED.descripcion,
     ruta_icono = EXCLUDED.ruta_icono,
     orden_visualizacion = EXCLUDED.orden_visualizacion;
-
-\ir migrations/precios-servicios.sql
-\ir migrations/catalogo-servicios.sql
-\ir migrations/horarios-servicios.sql
 
 INSERT INTO roles_usuario (codigo, nombre)
 VALUES

@@ -103,28 +103,34 @@ docker build --target test --tag servicios-medicos-frontend:test ./frontend
 docker build --file deploy/migrations/Dockerfile --tag servicios-medicos-migrations:test .
 ```
 
-## Base de datos
+## Base de datos y migraciones
 
-`database/init.sql` crea el esquema y los datos iniciales la primera vez que
-PostgreSQL crea su volumen.
+`database/migrate.sql` es el manifiesto único de migraciones. Ejecuta el
+esquema y los datos iniciales de `database/init.sql`, seguido de todas las
+migraciones de `database/migrations/` en el orden definido en ese archivo.
 
-Las variables `ADMIN_*` deben proporcionarse antes de la inicialización. No
-hay credenciales administrativas predeterminadas ni almacenadas en el repositorio.
+El servicio `migrations` utiliza el mismo ejecutor en local y producción.
+Docker Compose espera a que PostgreSQL esté disponible, ejecuta las
+migraciones y solo entonces inicia el backend. Esto también aplica sobre un
+volumen PostgreSQL ya existente; no depende de que el directorio
+`docker-entrypoint-initdb.d` se ejecute por primera vez.
 
-Para inicializar nuevamente desde cero:
+Las variables `ADMIN_EMAIL` y `ADMIN_PASSWORD` son obligatorias para crear
+el administrador inicial. No hay credenciales administrativas predeterminadas
+ni almacenadas en el repositorio.
+
+Para volver a ejecutar manualmente el mismo conjunto de migraciones:
+
+```sh
+docker compose run --rm migrations
+```
+
+Para inicializar nuevamente desde cero (elimina los datos existentes):
 
 ```sh
 docker compose down -v
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
-
-Este comando elimina los datos de PostgreSQL.
-
-## Migraciones existentes
-
-Las migraciones adicionales están en `database/migrations/`. En el despliegue
-de producción se ejecutan mediante la imagen
-`servicios-medicos-migrations` antes de iniciar los servicios.
 
 ## CI/CD con GitHub Actions
 
