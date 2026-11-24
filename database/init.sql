@@ -203,6 +203,24 @@ CREATE INDEX IF NOT EXISTS citas_paciente_fecha_idx
 CREATE INDEX IF NOT EXISTS citas_estado_fecha_idx
     ON citas (id_estado, inicia_en);
 
+CREATE TABLE IF NOT EXISTS historial_citas (
+    id_historial UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_cita UUID NOT NULL,
+    id_usuario UUID,
+    version_anterior JSONB NOT NULL,
+    version_actualizada JSONB NOT NULL,
+    realizado_en TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT historial_citas_cita_fk
+        FOREIGN KEY (id_cita) REFERENCES citas (id_cita)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT historial_citas_usuario_fk
+        FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS historial_citas_cita_fecha_idx
+    ON historial_citas (id_cita, realizado_en DESC);
+
 CREATE TABLE IF NOT EXISTS beneficios_atencion (
     id_beneficio SMALLSERIAL PRIMARY KEY,
     clave TEXT NOT NULL UNIQUE,
@@ -297,14 +315,14 @@ SET nombre = EXCLUDED.nombre,
 INSERT INTO medicos (id_medico, titulo_profesional, nombre, apellidos, descripcion, ruta_imagen)
 VALUES
     ('1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10', 'Dr.', 'Daniel', 'Vega', 'Especialista en diagnóstico y tratamiento neurológico.', '/assets/photo 2.jpg'),
-    ('2f5e3e32-83ed-4a1e-c38b-9b5b2f5d7f21', 'Dra.', 'Laura', 'Morales', 'Especialista en lesiones traumáticas y recuperación funcional.', '/assets/photo 3.jpg'),
-    ('3f6a4f43-94fe-5b2f-d49c-ac6c3f6e8f32', 'Dr.', 'Ricardo', 'Navarro', 'Especialista en traumatología y salud de las articulaciones.', '/assets/photo 4.jpg'),
+    ('2f5e3e32-83ed-4a1e-b38b-9b5b2f5d7f21', 'Dra.', 'Laura', 'Morales', 'Especialista en lesiones traumáticas y recuperación funcional.', '/assets/photo 3.jpg'),
+    ('3f6a4f43-94fe-4b2f-b49c-ac6c3f6e8f32', 'Dr.', 'Ricardo', 'Navarro', 'Especialista en traumatología y salud de las articulaciones.', '/assets/photo 4.jpg'),
     ('4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7', 'Dr.', 'Carlos', 'Ramírez', 'Cardiólogo. Prevención y cuidado integral de tu corazón.', '/assets/photo 5.jpg'),
     ('6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41', 'Dra.', 'Sofía', 'Martínez', 'Pediatra. Especialista en atención integral infantil.', '/assets/photo 2.jpg'),
-    ('5f7b5f54-a50f-6c30-e5ad-bd7d4f7f9f43', 'Lic.', 'Mariana', 'Cruz', 'Nutrióloga clínica con atención personalizada.', '/assets/photo 3.jpg'),
-    ('6f8c6f65-b610-7d41-f6be-ce8e5f8fa054', 'Dr.', 'Alejandro', 'Ibarra', 'Especialista en cirugía oral y cirugía maxilofacial.', '/assets/photo 4.jpg'),
-    ('7f9d7f76-c721-8e52-f7cf-df9f6f9fb165', 'Dra.', 'Valeria', 'Santos', 'Especialista en cirugía reconstructiva y plástica.', '/assets/photo 5.jpg'),
-    ('8fac8077-d832-9f63-f8df-ffaf718fc276', 'Dr.', 'Andrés', 'Herrera', 'Psiquiatra enfocado en atención integral de la salud mental.', '/assets/photo 2.jpg')
+    ('5f7b5f54-a50f-4c30-b5ad-bd7d4f7f9f43', 'Lic.', 'Mariana', 'Cruz', 'Nutrióloga clínica con atención personalizada.', '/assets/photo 3.jpg'),
+    ('6f8c6f65-b610-4d41-b6be-ce8e5f8fa054', 'Dr.', 'Alejandro', 'Ibarra', 'Especialista en cirugía oral y cirugía maxilofacial.', '/assets/photo 4.jpg'),
+    ('7f9d7f76-c721-4e52-b7cf-df9f6f9fb165', 'Dra.', 'Valeria', 'Santos', 'Especialista en cirugía reconstructiva y plástica.', '/assets/photo 5.jpg'),
+    ('8fac8077-d832-4f63-b8df-ffaf718fc276', 'Dr.', 'Andrés', 'Herrera', 'Psiquiatra enfocado en atención integral de la salud mental.', '/assets/photo 2.jpg')
 ON CONFLICT (id_medico) DO UPDATE
 SET titulo_profesional = EXCLUDED.titulo_profesional,
     nombre = EXCLUDED.nombre,
@@ -317,14 +335,14 @@ SELECT asignacion.id_medico, especialidad.id_especialidad
 FROM (
     VALUES
         ('1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10'::uuid, 'neurologia'),
-        ('2f5e3e32-83ed-4a1e-c38b-9b5b2f5d7f21'::uuid, 'traumatologia'),
-        ('3f6a4f43-94fe-5b2f-d49c-ac6c3f6e8f32'::uuid, 'ortopedia'),
+        ('2f5e3e32-83ed-4a1e-b38b-9b5b2f5d7f21'::uuid, 'traumatologia'),
+        ('3f6a4f43-94fe-4b2f-b49c-ac6c3f6e8f32'::uuid, 'ortopedia'),
         ('4d170f18-a7d8-4c73-bc8d-6a51ec8f7ed7'::uuid, 'cardiologia'),
         ('6baf45e3-9a30-4d90-9ec3-5b9bd8d4fb41'::uuid, 'pediatria'),
-        ('5f7b5f54-a50f-6c30-e5ad-bd7d4f7f9f43'::uuid, 'nutricion'),
-        ('6f8c6f65-b610-7d41-f6be-ce8e5f8fa054'::uuid, 'cirugia-maxilofacial'),
-        ('7f9d7f76-c721-8e52-f7cf-df9f6f9fb165'::uuid, 'cirugia-plastica'),
-        ('8fac8077-d832-9f63-f8df-ffaf718fc276'::uuid, 'psiquiatria')
+        ('5f7b5f54-a50f-4c30-b5ad-bd7d4f7f9f43'::uuid, 'nutricion'),
+        ('6f8c6f65-b610-4d41-b6be-ce8e5f8fa054'::uuid, 'cirugia-maxilofacial'),
+        ('7f9d7f76-c721-4e52-b7cf-df9f6f9fb165'::uuid, 'cirugia-plastica'),
+        ('8fac8077-d832-4f63-b8df-ffaf718fc276'::uuid, 'psiquiatria')
 ) AS asignacion (id_medico, clave_especialidad)
 JOIN especialidades_medicas especialidad
     ON especialidad.clave = asignacion.clave_especialidad

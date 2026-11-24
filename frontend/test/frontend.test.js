@@ -59,9 +59,12 @@ test("perfil incluye datos editables y citas separadas", async () => {
   );
   assert.match(script, /\/api\/profile/);
   assert.match(script, /\/api\/profile\/appointments/);
-  assert.match(script, /Cambiar horario/);
+  assert.match(script, /Editar cita/);
+  assert.match(script, /aria-expanded/);
   assert.match(script, /Confirmar cambio/);
   assert.match(script, /excludeAppointmentId/);
+  assert.match(script, /Cita ya reprogramada/);
+  assert.match(script, /Cambio no disponible a menos de 24 horas/);
 });
 
 test("los estilos globales y del perfil comparten la paleta MEDICOM", async () => {

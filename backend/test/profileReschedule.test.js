@@ -4,6 +4,7 @@ import {
   sequelize,
   Appointment,
   AppointmentRegistration,
+  AppointmentHistory,
   AppointmentStatus,
   DoctorAvailabilitySlot,
 } from '../src/models/index.js';
@@ -35,7 +36,9 @@ test('la reprogramación aplica el límite al horario original y conserva la cit
     appointmentId: 'cita',
     statusId: 1,
     doctorId: 'medico',
+    specialtyId: 2,
     startAt: tooSoon,
+    endAt: '2026-11-23T09:30:00.000Z',
     update: t.mock.fn(async () => {}),
   };
   t.mock.method(sequelize, 'transaction', async (callback) => callback({ LOCK: { UPDATE: 'UPDATE' } }));
@@ -43,14 +46,28 @@ test('la reprogramación aplica el límite al horario original y conserva la cit
   t.mock.method(AppointmentStatus, 'findByPk', async () => confirmed);
   t.mock.method(DoctorAvailabilitySlot, 'findOne', async () => ({}));
   t.mock.method(AppointmentRegistration, 'findOne', async () => null);
+  const historyCreate = t.mock.method(AppointmentHistory, 'create', async (_values) => ({ historyId: 'historial' }));
 
   const proposed = { date: '2026-11-25', time: '12:00' };
   await assert.rejects(rescheduleUserAppointment('paciente', 'cita', proposed), { status: 422 });
   assert.equal(appointment.update.mock.callCount(), 0);
 
   appointment.startAt = originalStart;
+  await assert.rejects(
+    rescheduleUserAppointment('paciente', 'cita', { date: '2026-11-23', time: '09:00' }),
+    { status: 422 },
+  );
+  assert.equal(appointment.update.mock.callCount(), 0);
+
   const result = await rescheduleUserAppointment('paciente', 'cita', proposed);
   assert.equal(appointment.update.mock.callCount(), 1);
   assert.equal(result.date, proposed.date);
   assert.equal(result.time, proposed.time);
+  assert.equal(historyCreate.mock.callCount(), 1);
+  const [history] = historyCreate.mock.calls[0].arguments;
+  assert.equal(history.appointmentId, 'cita');
+  assert.equal(history.userId, 'paciente');
+  assert.ok(history.createdAt instanceof Date);
+  assert.equal(history.previousVersion.time, '09:00');
+  assert.equal(history.updatedVersion.time, proposed.time);
 });

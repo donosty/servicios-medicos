@@ -127,7 +127,7 @@
   function renderAppointments() {
     document.getElementById("admin-appointments-list").innerHTML = `
       <table class="admin-table admin-appointments-table">
-        <thead><tr><th>Folio y paciente</th><th>Médico</th><th>Fecha y hora</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Folio y paciente</th><th>Médico</th><th>Fecha y hora</th><th>Estado</th><th>Historial</th></tr></thead>
         <tbody>
           ${adminData.appointments.length ? adminData.appointments.map((appointment) => `
             <tr>
@@ -144,8 +144,22 @@
                   `).join("")}
                 </select>
               </td>
+              <td>
+                ${appointment.rescheduleHistory?.length ? `
+                  <details class="appointment-history">
+                    <summary>${appointment.rescheduleHistory.length} cambio${appointment.rescheduleHistory.length === 1 ? "" : "s"}</summary>
+                    ${appointment.rescheduleHistory.map((history) => `
+                      <div class="appointment-history-item">
+                        <strong>${escapeHtml(history.changedAt ? new Date(history.changedAt).toLocaleString("es-MX") : "Cambio registrado")}</strong>
+                        <span><b>Anterior:</b> ${escapeHtml(history.previous?.date)} · ${escapeHtml(history.previous?.time)}</span>
+                        <span><b>Actualizada:</b> ${escapeHtml(history.updated?.date)} · ${escapeHtml(history.updated?.time)}</span>
+                      </div>
+                    `).join("")}
+                  </details>
+                ` : '<span class="appointment-history-empty">Sin cambios</span>'}
+              </td>
             </tr>
-          `).join("") : '<tr><td colspan="4">No hay citas registradas.</td></tr>'}
+          `).join("") : '<tr><td colspan="5">No hay citas registradas.</td></tr>'}
         </tbody>
       </table>
     `;

@@ -17,3 +17,7 @@ psql "$DATABASE_URL" \
 psql "$DATABASE_URL" \
   --set=ON_ERROR_STOP=1 \
   --file /migrations/database/migrations/reprogramacion-citas.sql
+
+psql "$DATABASE_URL" \
+  --set=ON_ERROR_STOP=1 \
+  --file /migrations/database/migrations/normalizar-identificadores-medicos.sql
