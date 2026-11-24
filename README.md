@@ -20,8 +20,8 @@ panel administrativo y publicación automatizada de contenedores.
 | Docker | Empaquetado reproducible | Aislamiento de dependencias y consistencia entre desarrollo y producción |
 | Docker Hub | Registro de imágenes | Distribución versionada de backend, frontend y migraciones |
 | GitHub Actions | Integración y despliegue | Pruebas automáticas, publicación de imágenes y despliegue por commits |
-| DigitalOcean App Platform | Plataforma de producción | Orquestación administrada, escalado, HTTPS y despliegue de contenedores |
-| DigitalOcean Managed PostgreSQL | Base administrada | Respaldos, disponibilidad y administración operativa de PostgreSQL |
+| OCI Compute | Plataforma de producción | Ejecución de Docker Compose en una instancia de cómputo |
+| OCI Database with PostgreSQL | Base administrada | Respaldos, disponibilidad y administración operativa de PostgreSQL |
 
 ## Arquitectura
 
@@ -31,7 +31,7 @@ Internet
    +--> Frontend NGINX
    |      +--> Archivos estáticos AngularJS
    |
-   +--> App Platform /api
+   +--> OCI Load Balancer /api
           |
           +--> Servicio backend Express
                  |
@@ -39,8 +39,8 @@ Internet
 ```
 
 El frontend consume la API mediante rutas relativas `/api`. En producción,
-App Platform conserva el prefijo `/api` y lo dirige al backend. Esto permite
-usar el mismo origen HTTPS para HTML, JavaScript y cookies HttpOnly.
+OCI Load Balancer conserva el prefijo `/api` y lo dirige al backend. Esto
+permite usar el mismo origen HTTPS para HTML, JavaScript y cookies HttpOnly.
 
 El backend usa Helmet para cabeceras de seguridad, CORS restringido a los
 orígenes configurados, validación con Zod y sesiones persistidas en PostgreSQL.
@@ -119,13 +119,10 @@ Construir imágenes de producción
 Publicar latest y sha-<commit> en Docker Hub
         |
         v
-Generar App Spec con tags inmutables
-        |
-        v
 Ejecutar migraciones
         |
         v
-Desplegar backend y frontend en DigitalOcean
+Desplegar backend y frontend en OCI Compute
 ```
 
 Las imágenes se publican con dos tags:
@@ -150,7 +147,7 @@ Este esquema permite reproducibilidad y retroceso a una imagen determinada.
 
 Las variables de configuración se describen en
 [`deploy/.env.production.example`](deploy/.env.production.example). Los valores
-reales deben configurarse como secretos en App Platform o GitHub Actions.
+reales deben configurarse como secretos en OCI Vault o GitHub Actions.
 
 Secretos mínimos:
 
@@ -161,17 +158,18 @@ Secretos mínimos:
 - `DATABASE_URL`
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
-- `DIGITALOCEAN_ACCESS_TOKEN`
-- `DIGITALOCEAN_APP_ID`
+- `OCI_DEPLOY_HOST`
+- `OCI_DEPLOY_USER`
+- `OCI_DEPLOY_SSH_KEY`
 
 ## Plan de despliegue
 
-1. Configurar PostgreSQL administrado en App Platform.
+1. Configurar OCI Database with PostgreSQL.
 2. Crear los secretos de administración y CORS.
 3. Configurar Docker Hub y sus secretos de GitHub.
 4. Publicar las imágenes mediante GitHub Actions.
 5. Ejecutar el job previo al despliegue para inicializar o migrar PostgreSQL.
-6. Actualizar App Platform con las imágenes identificadas por SHA.
+6. Actualizar OCI Compute con las imágenes identificadas por SHA.
 7. Verificar `/health` y `/api`.
 8. Confirmar login, registro, perfil y administración.
 
