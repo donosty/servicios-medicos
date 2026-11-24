@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -13,7 +14,7 @@ permissions:
 
 concurrency:
   group: ci-cd-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -39,12 +40,110 @@ jobs:
   build-and-publish:
     name: Construir y publicar imagenes
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Descargar codigo
         uses: actions/checkout@v4
+
+      - name: Validar conexion configurada
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_ZONE: ${{ secrets.GCP_ZONE }}
+          GCP_VM_NAME: ${{ secrets.GCP_VM_NAME }}
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        run: |
+          python3 - <<'PYVALIDATE'
+          import json, os
+          keys = ["GCP_PROJECT_ID", "GCP_ZONE", "GCP_VM_NAME", "GCP_SERVICE_ACCOUNT_KEY"]
+          missing = [key for key in keys if not os.environ.get(key)]
+          if missing:
+              raise SystemExit("Faltan secretos: " + ", ".join(missing))
+          try:
+              credentials = json.loads(os.environ["GCP_SERVICE_ACCOUNT_KEY"])
+          except ValueError:
+              raise SystemExit("GCP_SERVICE_ACCOUNT_KEY no es JSON valido")
+          if credentials.get("type") != "service_account" or not all(
+              credentials.get(key) for key in ["private_key", "client_email"]
+          ):
+              raise SystemExit("GCP_SERVICE_ACCOUNT_KEY debe contener una clave de cuenta de servicio")
+          PYVALIDATE
+
+      - name: Preparar configuracion de GCP
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          PUBLIC_HOST: ${{ secrets.PUBLIC_HOST }}
+          ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PASSWORD_RESET_SECRET: ${{ secrets.PASSWORD_RESET_SECRET }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.parse import quote
+          import re
+
+          required = ["PUBLIC_HOST", "DOCKERHUB_USERNAME", "DOCKERHUB_TOKEN", "DB_USER",
+                      "DB_PASSWORD", "DB_NAME", "ADMIN_EMAIL", "ADMIN_PASSWORD",
+                      "PASSWORD_RESET_SECRET", "SMTP_USER", "SMTP_PASSWORD"]
+          missing = [key for key in required if not os.environ.get(key)]
+          if missing:
+              raise SystemExit("Faltan secretos: " + ", ".join(missing))
+          host = os.environ["PUBLIC_HOST"]
+          if len(host) > 253 or "." not in host or not all(
+              re.fullmatch(r"[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?", label)
+              for label in host.split(".")
+          ):
+              raise SystemExit("PUBLIC_HOST debe ser un nombre DNS sin https://, puerto ni ruta")
+          db_user = os.environ["DB_USER"]
+          db_password = os.environ["DB_PASSWORD"]
+          db_name = os.environ["DB_NAME"]
+          sha = os.environ["GITHUB_SHA"]
+          dockerhub = os.environ["DOCKERHUB_USERNAME"]
+          values = {
+              "BACKEND_IMAGE": f"{dockerhub}/servicios-medicos-backend:sha-{sha}",
+              "FRONTEND_IMAGE": f"{dockerhub}/servicios-medicos-frontend:sha-{sha}",
+              "MIGRATIONS_IMAGE": f"{dockerhub}/servicios-medicos-migrations:sha-{sha}",
+              "DB_USER": db_user,
+              "DB_PASSWORD": db_password,
+              "DB_NAME": db_name,
+              "DATABASE_URL": (
+                  f"postgresql://{quote(db_user, safe='')}:{quote(db_password, safe='')}"
+                  f"@db:5432/{quote(db_name, safe='')}"
+              ),
+              "PUBLIC_HOST": host,
+              "CORS_ORIGINS": "https://" + host,
+              "ADMIN_NAME": os.environ.get("ADMIN_NAME") or "Administrador MEDICOM",
+              "ADMIN_EMAIL": os.environ["ADMIN_EMAIL"],
+              "ADMIN_PASSWORD": os.environ["ADMIN_PASSWORD"],
+              "PASSWORD_RESET_SECRET": os.environ["PASSWORD_RESET_SECRET"],
+              "APP_PUBLIC_URL": "https://" + host,
+              "SMTP_HOST": os.environ.get("SMTP_HOST") or "smtp.gmail.com",
+              "SMTP_PORT": os.environ.get("SMTP_PORT") or "465",
+              "SMTP_SECURE": os.environ.get("SMTP_SECURE") or "true",
+              "SMTP_USER": os.environ["SMTP_USER"],
+              "SMTP_PASSWORD": os.environ["SMTP_PASSWORD"],
+              "SMTP_FROM": os.environ.get("SMTP_FROM") or os.environ["SMTP_USER"],
+              "DOCKERHUB_USERNAME": dockerhub,
+              "DOCKERHUB_TOKEN": os.environ["DOCKERHUB_TOKEN"],
+          }
+          with open(os.environ["RUNNER_TEMP"] + "/.env.production", "w", encoding="utf-8") as env_file:
+              for key, value in values.items():
+                  env_file.write(f"{key}={json.dumps(value.replace('$', '$$'))}\n")
+          PY
+          chmod 600 "$RUNNER_TEMP/.env.production"
 
       - name: Preparar Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -121,68 +220,6 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Preparar configuracion de GCP
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
-          ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          PASSWORD_RESET_SECRET: ${{ secrets.PASSWORD_RESET_SECRET }}
-          APP_PUBLIC_URL: ${{ secrets.APP_PUBLIC_URL }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          SMTP_FROM: ${{ secrets.SMTP_FROM }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          from urllib.parse import quote
-
-          db_user = os.environ["DB_USER"]
-          db_password = os.environ["DB_PASSWORD"]
-          db_name = os.environ["DB_NAME"]
-          sha = os.environ["GITHUB_SHA"]
-          dockerhub = os.environ["DOCKERHUB_USERNAME"]
-          values = {
-              "BACKEND_IMAGE": f"{dockerhub}/servicios-medicos-backend:sha-{sha}",
-              "FRONTEND_IMAGE": f"{dockerhub}/servicios-medicos-frontend:sha-{sha}",
-              "MIGRATIONS_IMAGE": f"{dockerhub}/servicios-medicos-migrations:sha-{sha}",
-              "DB_USER": db_user,
-              "DB_PASSWORD": db_password,
-              "DB_NAME": db_name,
-              "DATABASE_URL": (
-                  f"postgresql://{quote(db_user, safe='')}:{quote(db_password, safe='')}"
-                  f"@db:5432/{quote(db_name, safe='')}"
-              ),
-              "CORS_ORIGINS": os.environ["CORS_ORIGINS"],
-              "ADMIN_NAME": os.environ.get("ADMIN_NAME") or "Administrador MEDICOM",
-              "ADMIN_EMAIL": os.environ["ADMIN_EMAIL"],
-              "ADMIN_PASSWORD": os.environ["ADMIN_PASSWORD"],
-              "PASSWORD_RESET_SECRET": os.environ["PASSWORD_RESET_SECRET"],
-              "APP_PUBLIC_URL": os.environ["APP_PUBLIC_URL"],
-              "SMTP_HOST": os.environ.get("SMTP_HOST") or "smtp.gmail.com",
-              "SMTP_PORT": os.environ.get("SMTP_PORT") or "465",
-              "SMTP_SECURE": os.environ.get("SMTP_SECURE") or "true",
-              "SMTP_USER": os.environ["SMTP_USER"],
-              "SMTP_PASSWORD": os.environ["SMTP_PASSWORD"],
-              "SMTP_FROM": os.environ.get("SMTP_FROM") or os.environ["SMTP_USER"],
-              "DOCKERHUB_USERNAME": dockerhub,
-              "DOCKERHUB_TOKEN": os.environ["DOCKERHUB_TOKEN"],
-          }
-          with open(os.environ["RUNNER_TEMP"] + "/.env.production", "w", encoding="utf-8") as env_file:
-              for key, value in values.items():
-                  env_file.write(f"{key}={json.dumps(value)}\n")
-          PY
-          chmod 600 "$RUNNER_TEMP/.env.production"
-
       - name: Desplegar en Compute Engine
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -194,26 +231,33 @@ jobs:
             "$GCP_VM_NAME:/tmp/docker-compose.prod.yml" \
             --project="$GCP_PROJECT_ID" \
             --zone="$GCP_ZONE" \
-            --tunnel-through-iap
+            --quiet --tunnel-through-iap
 
           gcloud compute scp \
             "$RUNNER_TEMP/.env.production" \
             "$GCP_VM_NAME:/tmp/.env.production" \
             --project="$GCP_PROJECT_ID" \
             --zone="$GCP_ZONE" \
-            --tunnel-through-iap
+            --quiet --tunnel-through-iap
+
+          gcloud compute scp \
+            deploy/Caddyfile \
+            "$GCP_VM_NAME:/tmp/Caddyfile" \
+            --project="$GCP_PROJECT_ID" \
+            --zone="$GCP_ZONE" \
+            --quiet --tunnel-through-iap
 
           gcloud compute scp \
             deploy/gcp/deploy.sh \
             "$GCP_VM_NAME:/tmp/deploy.sh" \
             --project="$GCP_PROJECT_ID" \
             --zone="$GCP_ZONE" \
-            --tunnel-through-iap
+            --quiet --tunnel-through-iap
 
           gcloud compute ssh "$GCP_VM_NAME" \
             --project="$GCP_PROJECT_ID" \
             --zone="$GCP_ZONE" \
-            --tunnel-through-iap \
+            --quiet --tunnel-through-iap \
             --command="sudo install -d -m 0750 /opt/servicios-medicos && sudo chmod 0755 /tmp/deploy.sh && sudo /tmp/deploy.sh"
 
       - name: Verificar imagen backend publicada

@@ -4,6 +4,7 @@ set -eu
 cd /opt/servicios-medicos
 mv /tmp/docker-compose.prod.yml ./docker-compose.prod.yml
 mv /tmp/.env.production ./.env.production
+mv /tmp/Caddyfile ./Caddyfile
 chmod 600 ./.env.production
 
 DOCKERHUB_USERNAME=$(python3 - "$PWD/.env.production" <<'PY'
@@ -12,7 +13,7 @@ import sys
 for line in open(sys.argv[1], encoding="utf-8"):
     key, separator, value = line.strip().partition("=")
     if separator and key == "DOCKERHUB_USERNAME":
-        print(json.loads(value))
+        print(json.loads(value).replace("$$", "$"))
         break
 PY
 )
@@ -22,7 +23,7 @@ import sys
 for line in open(sys.argv[1], encoding="utf-8"):
     key, separator, value = line.strip().partition("=")
     if separator and key == "DOCKERHUB_TOKEN":
-        print(json.loads(value), end="")
+        print(json.loads(value).replace("$$", "$"), end="")
         break
 PY
 )
@@ -31,8 +32,35 @@ if [ -n "$DOCKERHUB_TOKEN" ]; then
   printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 fi
 
-docker compose --env-file .env.production -f docker-compose.prod.yml pull
-docker compose --env-file .env.production -f docker-compose.prod.yml run --rm migrations
-docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans backend frontend
+compose() {
+  docker compose --env-file .env.production -f docker-compose.prod.yml "$@"
+}
+
+compose --profile migrations config --quiet
+compose --profile migrations pull
+compose up -d --wait --wait-timeout 120 db
+compose run --rm --no-deps migrations
+compose up -d --wait --wait-timeout 180 backend frontend
+# Reabrir el bind mount incluso si el Caddyfile fue reemplazado por mv.
+compose up -d --force-recreate --wait --wait-timeout 60 caddy
 docker compose --env-file .env.production -f docker-compose.prod.yml ps
-docker image prune -f
+PUBLIC_HOST=$(python3 - "$PWD/.env.production" <<'PYHOST'
+import json, sys
+for line in open(sys.argv[1], encoding="utf-8"):
+    key, separator, value = line.strip().partition("=")
+    if separator and key == "PUBLIC_HOST":
+        print(json.loads(value))
+        break
+PYHOST
+)
+
+# Verifica certificado, Caddy y backend. No omitir la validacion TLS con -k.
+for attempt in $(seq 1 30); do
+  if curl --fail --silent --show-error --connect-timeout 5 --max-time 10 \
+      --resolve "$PUBLIC_HOST:443:127.0.0.1" "https://$PUBLIC_HOST/health"; then
+    exit 0
+  fi
+  sleep 5
+done
+printf '%s\n' 'No se pudo verificar HTTPS. Revisar DNS, firewall y logs de Caddy.' >&2
+exit 1

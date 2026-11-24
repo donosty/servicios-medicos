@@ -3,6 +3,9 @@
 # ==========================================
 .env
 .env.local
+.env.production
+.env.gcp
+gha-creds-*.json
 .env.*.local
 *.pem
 *.key
