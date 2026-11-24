@@ -1,12 +1,12 @@
-# Despliegue de producción en DigitalOcean App Platform
+# Despliegue de producción en Oracle Cloud
 
-Esta carpeta contiene la especificación para desplegar imágenes ya publicadas
-desde Docker Hub. El Compose y el entorno de desarrollo del directorio raíz no
-se usan en App Platform.
+Esta carpeta contiene el Compose de producción para OCI Compute y los archivos
+necesarios para migrar PostgreSQL. El Compose del directorio raíz sigue siendo
+el entorno de desarrollo local.
 
 ## Archivos
 
-- `app.yaml`: especificación de App Platform basada en imágenes Docker Hub.
+- `docker-compose.prod.yml`: ejecución del backend, frontend y migraciones.
 - `backend/Dockerfile`: imagen de producción del backend.
 - `frontend/Dockerfile`: imagen de producción del frontend.
 - `frontend/nginx.conf`: servidor estático sin proxy Docker local.
@@ -22,32 +22,30 @@ El administrador inicial se crea durante la migración con tres secretos:
 - `ADMIN_EMAIL`: correo de acceso.
 - `ADMIN_PASSWORD`: contraseña de acceso.
 
-Configura `ADMIN_EMAIL` y `ADMIN_PASSWORD` como secretos en App Platform. No
-incluyas valores reales en `app.yaml` ni en Git.
+Configura `ADMIN_EMAIL` y `ADMIN_PASSWORD` como secretos de GitHub Actions o
+OCI Vault. No incluyas valores reales en el repositorio.
 
 La contraseña se cifra con bcrypt antes de guardarla. La migración no muestra
 la contraseña en los logs ni la incluye en la imagen.
 
 ## Base de datos
 
-App Platform crea PostgreSQL administrado y expone su URL mediante
-`${database.DATABASE_URL}`. El job `database-migration` ejecuta primero
-`database/init.sql` y después las migraciones necesarias.
+OCI Database with PostgreSQL expone una URL de conexión. La tarea de migración
+ejecuta primero `database/init.sql` y después las migraciones necesarias.
 
 Antes del primer despliegue:
 
-1. Configura las variables de App Platform.
+1. Configura las variables y secretos de OCI y GitHub Actions.
 2. Define `CORS_ORIGINS` con el dominio público final.
 3. Crea secretos para `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
 4. Despliega la aplicación desde el repositorio.
 
-Cuando el dominio asignado por DigitalOcean cambie, actualiza
-`CORS_ORIGINS`.
+Cuando cambie el dominio público, actualiza `CORS_ORIGINS`.
 
 ## Docker Hub
 
-El repositorio utiliza por defecto la cuenta `donosty`. Si la cuenta de Docker
-Hub es distinta, cambia el campo `registry` en `deploy/app.yaml`.
+Las imágenes se identifican mediante el usuario de Docker Hub y el nombre del
+repositorio.
 
 Las imágenes publicadas son:
 
@@ -60,19 +58,23 @@ Cada publicación debe conservar dos etiquetas:
 - `latest`
 - `sha-<SHA-del-commit>`
 
-El flujo de GitHub Actions reemplaza automáticamente `latest` por
-`sha-<SHA>` al generar la especificación temporal desplegada en DigitalOcean.
-Esto hace que cada despliegue use exactamente el commit publicado.
-
-Para imágenes privadas, configura las credenciales en DigitalOcean como
-Docker Hub Registry o agrega `registry_credentials` al objeto `image` con el
-formato `$username:$access_token`. No escribas el token dentro de Git.
+GitHub Actions publica ambas arquitecturas `amd64` y `arm64`. Cada despliegue
+usa las imágenes identificadas por el SHA exacto del commit.
 
 ## Despliegue automático
 
-El workflow requiere estos secretos adicionales en GitHub:
+El workflow requiere estos secretos en GitHub:
 
-- `DIGITALOCEAN_ACCESS_TOKEN`: token de API de DigitalOcean.
-- `DIGITALOCEAN_APP_ID`: identificador de la App Platform.
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+- `OCI_DEPLOY_HOST`
+- `OCI_DEPLOY_USER`
+- `OCI_DEPLOY_SSH_KEY`
+- `DATABASE_URL`
+- `CORS_ORIGINS`
+- `ADMIN_NAME`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
-El despliegue ocurre después de publicar las tres imágenes con GitHub Actions.
+Las imágenes se publican en Docker Hub y se despliegan desde GitHub Actions
+mediante SSH hacia OCI Compute.

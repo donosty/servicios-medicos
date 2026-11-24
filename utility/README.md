@@ -132,13 +132,77 @@ El workflow:
 
 1. Ejecuta las pruebas del backend y frontend.
 2. Construye y prueba la imagen de migraciones.
-3. Publica tres imágenes en Docker Hub.
-4. Genera un App Spec de App Platform con tags inmutables.
-5. Despliega el commit en DigitalOcean.
+3. Publica tres imágenes para `amd64` y `arm64` en Docker Hub.
+4. Despliega el commit en OCI Compute mediante SSH.
+5. Ejecuta las migraciones antes de iniciar backend y frontend.
 
 Secretos requeridos en GitHub:
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
-- `DIGITALOCEAN_ACCESS_TOKEN`
-- `DIGITALOCEAN_APP_ID`
+- `OCI_DEPLOY_HOST`
+- `OCI_DEPLOY_USER`
+- `OCI_DEPLOY_SSH_KEY`
+- `DATABASE_URL`
+- `CORS_ORIGINS`
+- `ADMIN_NAME`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+## Uso manual de las imágenes en OCI Compute
+
+Docker Hub no necesita cambios adicionales para que OCI pueda ejecutar las
+imágenes. Las imágenes deben publicar una variante compatible con la
+arquitectura de la instancia OCI, preferiblemente `amd64` y `arm64`.
+
+En la instancia OCI, instala Docker Engine y Docker Compose v2. Después copia
+[`deploy/docker-compose.prod.yml`](../deploy/docker-compose.prod.yml) y crea
+`/opt/servicios-medicos/.env.production` con la configuración real:
+
+```dotenv
+BACKEND_IMAGE=tu-usuario/servicios-medicos-backend:latest
+FRONTEND_IMAGE=tu-usuario/servicios-medicos-frontend:latest
+MIGRATIONS_IMAGE=tu-usuario/servicios-medicos-migrations:latest
+DATABASE_URL=postgresql://usuario:contraseña@host:5432/base?sslmode=require
+DB_SSL=true
+CORS_ORIGINS=https://tudominio.com
+ADMIN_NAME=Administrador MEDICOM
+ADMIN_EMAIL=admin@tudominio.com
+ADMIN_PASSWORD=una-contraseña-secreta
+```
+
+Para asegurar que OCI despliegue exactamente el commit probado, sustituye
+`latest` por `sha-<SHA-del-commit>` en las tres variables.
+
+Si los repositorios de Docker Hub son privados, inicia sesión una vez en OCI:
+
+```sh
+docker login -u tu-usuario
+```
+
+Para repositorios públicos no es necesario iniciar sesión.
+
+Descarga las imágenes y ejecuta las migraciones antes de iniciar la aplicación:
+
+```sh
+cd /opt/servicios-medicos
+docker compose --env-file .env.production -f docker-compose.prod.yml pull
+docker compose --env-file .env.production -f docker-compose.prod.yml run --rm migrations
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d backend frontend
+```
+
+La migración debe ejecutarse una sola vez por despliegue que modifique el
+esquema. Si falla, detén el despliegue y corrige la migración antes de iniciar
+una nueva versión.
+
+Verifica el servicio:
+
+```sh
+curl --fail http://127.0.0.1:3000/health
+curl --fail http://127.0.0.1/health
+```
+
+Expone el puerto 3000 únicamente desde OCI Compute hacia el Load Balancer o
+configura las reglas de red para que el frontend, el backend y PostgreSQL sean
+accesibles solo dentro de la VCN. El Load Balancer debe dirigir `/api` al
+backend y `/` al frontend.

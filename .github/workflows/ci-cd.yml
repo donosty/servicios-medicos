@@ -62,6 +62,7 @@ jobs:
           file: ./backend/Dockerfile
           target: production
           push: true
+          platforms: linux/amd64,linux/arm64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-backend:latest
@@ -80,6 +81,7 @@ jobs:
           file: ./frontend/Dockerfile
           target: production
           push: true
+          platforms: linux/amd64,linux/arm64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-frontend:latest
@@ -97,6 +99,7 @@ jobs:
           context: .
           file: ./deploy/migrations/Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           provenance: false
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-migrations:latest
@@ -108,31 +111,67 @@ jobs:
           cache-from: type=gha,scope=migrations
           cache-to: type=gha,mode=max,scope=migrations
 
-      - name: Generar especificacion con imagenes del commit
+      - name: Configurar acceso SSH a OCI
         env:
+          OCI_DEPLOY_SSH_KEY: ${{ secrets.OCI_DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$OCI_DEPLOY_SSH_KEY" > "$HOME/.ssh/oci_deploy"
+          chmod 600 "$HOME/.ssh/oci_deploy"
+
+      - name: Desplegar en OCI Compute
+        env:
+          OCI_DEPLOY_HOST: ${{ secrets.OCI_DEPLOY_HOST }}
+          OCI_DEPLOY_USER: ${{ secrets.OCI_DEPLOY_USER }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
-          sed \
-            -e "s|registry: donosty|registry: ${DOCKERHUB_USERNAME}|g" \
-            -e "s|tag: latest|tag: sha-${GITHUB_SHA}|g" \
-            deploy/app.yaml > /tmp/servicios-medicos-app.yaml
+          cat > "$RUNNER_TEMP/.env.production" <<EOF
+          BACKEND_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-backend:sha-${GITHUB_SHA}
+          FRONTEND_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-frontend:sha-${GITHUB_SHA}
+          MIGRATIONS_IMAGE=${DOCKERHUB_USERNAME}/servicios-medicos-migrations:sha-${GITHUB_SHA}
+          DATABASE_URL=${DATABASE_URL}
+          DB_SSL=true
+          CORS_ORIGINS=${CORS_ORIGINS}
+          ADMIN_NAME=${ADMIN_NAME:-Administrador MEDICOM}
+          ADMIN_EMAIL=${ADMIN_EMAIL}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
+          EOF
 
-      - name: Instalar DigitalOcean CLI
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          chmod 600 "$RUNNER_TEMP/.env.production"
 
-      - name: Desplegar especificacion en App Platform
-        run: |
-          doctl apps update "${{ secrets.DIGITALOCEAN_APP_ID }}" \
-            --spec /tmp/servicios-medicos-app.yaml \
-            --wait
+          scp -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
+            deploy/docker-compose.prod.yml \
+            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}:~/docker-compose.prod.yml"
+          scp -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
+            "$RUNNER_TEMP/.env.production" \
+            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}:~/.env.production"
+
+          ssh -i "$HOME/.ssh/oci_deploy" -o StrictHostKeyChecking=accept-new \
+            "${OCI_DEPLOY_USER}@${OCI_DEPLOY_HOST}" \
+            "cd ~ && \
+             mkdir -p /opt/servicios-medicos && \
+             mv ~/docker-compose.prod.yml /opt/servicios-medicos/docker-compose.prod.yml && \
+             mv ~/.env.production /opt/servicios-medicos/.env.production && \
+             chmod 600 /opt/servicios-medicos/.env.production && \
+             cd /opt/servicios-medicos && \
+             if [ -n '${DOCKERHUB_TOKEN}' ]; then printf '%s' '${DOCKERHUB_TOKEN}' | docker login -u '${DOCKERHUB_USERNAME}' --password-stdin; fi && \
+             docker compose --env-file .env.production -f docker-compose.prod.yml pull && \
+             docker compose --env-file .env.production -f docker-compose.prod.yml run --rm migrations && \
+             docker compose --env-file .env.production -f docker-compose.prod.yml up -d --remove-orphans backend frontend && \
+             docker image prune -f"
 
       - name: Verificar imagen backend publicada
-        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-backend:latest
+        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-backend:sha-${{ github.sha }}
 
       - name: Verificar imagen frontend publicada
-        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-frontend:latest
+        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-frontend:sha-${{ github.sha }}
 
       - name: Verificar imagen de migraciones publicada
-        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-migrations:latest
+        run: docker buildx imagetools inspect ${{ secrets.DOCKERHUB_USERNAME }}/servicios-medicos-migrations:sha-${{ github.sha }}
