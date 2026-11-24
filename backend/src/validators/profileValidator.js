@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const profileSchema = z.object({
   fullName: z.string().trim().min(3).max(120),

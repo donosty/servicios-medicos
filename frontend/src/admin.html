@@ -16,10 +16,34 @@
         <strong id="admin-name">Administrador</strong>
         <span>Panel administrativo</span>
         <nav class="admin-nav" aria-label="Secciones del panel">
-          <button type="button" class="admin-nav-button is-active" data-section="overview">Resumen</button>
-          <button type="button" class="admin-nav-button" data-section="services">Servicios y precios</button>
-          <button type="button" class="admin-nav-button" data-section="availability">Disponibilidad</button>
-          <button type="button" class="admin-nav-button" data-section="appointments">Citas</button>
+          <button
+            type="button"
+            class="admin-nav-button is-active"
+            data-section="overview"
+          >
+            Resumen
+          </button>
+          <button
+            type="button"
+            class="admin-nav-button"
+            data-section="services"
+          >
+            Servicios y precios
+          </button>
+          <button
+            type="button"
+            class="admin-nav-button"
+            data-section="availability"
+          >
+            Disponibilidad
+          </button>
+          <button
+            type="button"
+            class="admin-nav-button"
+            data-section="appointments"
+          >
+            Citas
+          </button>
         </nav>
       </aside>
       <section class="admin-content">
@@ -28,48 +52,120 @@
             <p class="admin-kicker">Administración MEDICOM</p>
             <h1 id="admin-heading-title">Resumen</h1>
           </div>
-          <button id="admin-logout" class="admin-logout" type="button">Cerrar sesión</button>
+          <button id="admin-logout" class="admin-logout" type="button">
+            Cerrar sesión
+          </button>
         </header>
         <p id="admin-message" class="admin-message" role="status"></p>
 
-        <section class="admin-section is-active" id="admin-overview" data-admin-section="overview">
+        <section
+          class="admin-section is-active"
+          id="admin-overview"
+          data-admin-section="overview"
+        >
           <div class="admin-stat-grid" id="admin-stats"></div>
           <article class="admin-card">
             <h2>Operación del centro</h2>
-            <p>Actualiza los servicios, horarios y estados desde esta misma página. Los cambios quedan disponibles inmediatamente en el catálogo y la agenda pública.</p>
+            <p>
+              Actualiza los servicios, horarios y estados desde esta misma
+              página. Los cambios quedan disponibles inmediatamente en el
+              catálogo y la agenda pública.
+            </p>
           </article>
         </section>
 
-        <section class="admin-section" id="admin-services" data-admin-section="services" hidden>
+        <section
+          class="admin-section"
+          id="admin-services"
+          data-admin-section="services"
+          hidden
+        >
           <div class="admin-toolbar">
             <div>
               <h2>Servicios y precios</h2>
               <p>Registro y modificación de servicios médicos.</p>
             </div>
-            <button type="button" class="admin-primary" id="admin-new-service">Nuevo servicio</button>
+            <button type="button" class="admin-primary" id="admin-new-service">
+              Nuevo servicio
+            </button>
           </div>
           <form id="admin-service-form" class="admin-form" hidden>
             <input type="hidden" id="admin-service-id" />
             <div class="admin-form-grid">
-              <label>Nombre<input id="admin-service-name" required minlength="3" maxlength="120" /></label>
-              <label>Clave automática / personalizada<input id="admin-service-slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="120" /></label>
-              <label>Precio (MXN)<input id="admin-service-price" type="number" min="0" step="0.01" /></label>
-              <label>Orden<select id="admin-service-order"><option value="0">0</option></select></label>
-              <label class="admin-field-wide">Descripción<textarea id="admin-service-description" required minlength="3" maxlength="1000"></textarea></label>
-              <label>Título del catálogo<input id="admin-service-title" maxlength="120" /></label>
-              <label>Categoría<input id="admin-service-category" maxlength="120" /></label>
-              <label class="admin-field-wide">Descripción del catálogo<textarea id="admin-service-catalog-description" maxlength="1000"></textarea></label>
-              <label class="admin-check"><input id="admin-service-active" type="checkbox" checked /> Servicio activo</label>
+              <label
+                >Nombre<input
+                  id="admin-service-name"
+                  required
+                  minlength="3"
+                  maxlength="120"
+              /></label>
+              <label
+                >Clave automática / personalizada<input
+                  id="admin-service-slug"
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  maxlength="120"
+              /></label>
+              <label
+                >Precio (MXN)<input
+                  id="admin-service-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+              /></label>
+              <label
+                >Orden<select id="admin-service-order">
+                  <option value="0">0</option>
+                </select></label
+              >
+              <label class="admin-field-wide"
+                >Descripción<textarea
+                  id="admin-service-description"
+                  required
+                  minlength="3"
+                  maxlength="1000"
+                ></textarea>
+              </label>
+              <label
+                >Título del catálogo<input
+                  id="admin-service-title"
+                  maxlength="120"
+              /></label>
+              <label
+                >Categoría<input id="admin-service-category" maxlength="120"
+              /></label>
+              <label class="admin-field-wide"
+                >Descripción del catálogo<textarea
+                  id="admin-service-catalog-description"
+                  maxlength="1000"
+                ></textarea>
+              </label>
+              <label class="admin-check"
+                ><input id="admin-service-active" type="checkbox" checked />
+                Servicio activo</label
+              >
             </div>
             <div class="admin-form-actions">
-              <button type="submit" class="admin-primary">Guardar servicio</button>
-              <button type="button" class="admin-secondary" id="admin-cancel-service">Cancelar</button>
+              <button type="submit" class="admin-primary">
+                Guardar servicio
+              </button>
+              <button
+                type="button"
+                class="admin-secondary"
+                id="admin-cancel-service"
+              >
+                Cancelar
+              </button>
             </div>
           </form>
           <div id="admin-services-list" class="admin-table-wrap"></div>
         </section>
 
-        <section class="admin-section" id="admin-availability" data-admin-section="availability" hidden>
+        <section
+          class="admin-section"
+          id="admin-availability"
+          data-admin-section="availability"
+          hidden
+        >
           <div class="admin-toolbar">
             <div>
               <h2>Disponibilidad y horarios</h2>
@@ -79,33 +175,66 @@
           <form id="admin-slot-form" class="admin-form">
             <input type="hidden" id="admin-slot-id" />
             <div class="admin-form-grid">
-              <label>Médico<select id="admin-slot-doctor" required></select></label>
-              <label>Día<select id="admin-slot-day" required>
-                <option value="0">Domingo</option>
-                <option value="1">Lunes</option>
-                <option value="2">Martes</option>
-                <option value="3">Miércoles</option>
-                <option value="4">Jueves</option>
-                <option value="5">Viernes</option>
-                <option value="6">Sábado</option>
-              </select></label>
-              <label>Hora<input id="admin-slot-time" type="time" required /></label>
-              <label>Duración (minutos)<input id="admin-slot-duration" type="number" min="15" max="240" value="30" required /></label>
-              <label class="admin-check"><input id="admin-slot-active" type="checkbox" checked /> Horario activo</label>
+              <label
+                >Médico<select id="admin-slot-doctor" required></select
+              ></label>
+              <label
+                >Día<select id="admin-slot-day" required>
+                  <option value="0">Domingo</option>
+                  <option value="1">Lunes</option>
+                  <option value="2">Martes</option>
+                  <option value="3">Miércoles</option>
+                  <option value="4">Jueves</option>
+                  <option value="5">Viernes</option>
+                  <option value="6">Sábado</option>
+                </select></label
+              >
+              <label
+                >Hora<input id="admin-slot-time" type="time" required
+              /></label>
+              <label
+                >Duración (minutos)<input
+                  id="admin-slot-duration"
+                  type="number"
+                  min="15"
+                  max="240"
+                  value="30"
+                  required
+              /></label>
+              <label class="admin-check"
+                ><input id="admin-slot-active" type="checkbox" checked />
+                Horario activo</label
+              >
             </div>
             <div class="admin-form-actions">
-              <button type="submit" class="admin-primary">Guardar horario</button>
-              <button type="button" class="admin-secondary" id="admin-cancel-slot">Limpiar</button>
+              <button type="submit" class="admin-primary">
+                Guardar horario
+              </button>
+              <button
+                type="button"
+                class="admin-secondary"
+                id="admin-cancel-slot"
+              >
+                Limpiar
+              </button>
             </div>
           </form>
           <div id="admin-slots-list" class="admin-table-wrap"></div>
         </section>
 
-        <section class="admin-section" id="admin-appointments" data-admin-section="appointments" hidden>
+        <section
+          class="admin-section"
+          id="admin-appointments"
+          data-admin-section="appointments"
+          hidden
+        >
           <div class="admin-toolbar">
             <div>
               <h2>Estado de las citas</h2>
-              <p>Cambia el estado de cada cita registrada y consulta las versiones anteriores y actualizadas.</p>
+              <p>
+                Cambia el estado de cada cita registrada y consulta las
+                versiones anteriores y actualizadas.
+              </p>
             </div>
           </div>
           <div id="admin-appointments-list" class="admin-table-wrap"></div>

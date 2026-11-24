@@ -1,46 +1,66 @@
-import { Doctor, MedicalSpecialty, ServicioMedico } from '../models/index.js';
-import { getOpenSlotsByDoctor, getUpcomingAgendaDates } from './availabilityService.js';
+import { Doctor, MedicalSpecialty, ServicioMedico } from "../models/index.js";
+import {
+  getOpenSlotsByDoctor,
+  getUpcomingAgendaDates,
+} from "./availabilityService.js";
 
 export const getActiveMedicalServices = async () => {
   const services = await ServicioMedico.findAll({
     where: { isActive: true },
-    include: [{
-      model: MedicalSpecialty,
-      as: 'especialidades',
-      attributes: ['slug', 'name'],
-      through: { attributes: [] },
-      where: { isActive: true },
-      required: false,
-      include: [{
-        model: Doctor,
-        as: 'medicos',
-        attributes: ['doctorId'],
+    include: [
+      {
+        model: MedicalSpecialty,
+        as: "especialidades",
+        attributes: ["slug", "name"],
         through: { attributes: [] },
         where: { isActive: true },
         required: false,
-      }],
-    }],
+        include: [
+          {
+            model: Doctor,
+            as: "medicos",
+            attributes: ["doctorId"],
+            through: { attributes: [] },
+            where: { isActive: true },
+            required: false,
+          },
+        ],
+      },
+    ],
     order: [
-      ['displayOrder', 'ASC'],
-      ['name', 'ASC'],
-      [{ model: MedicalSpecialty, as: 'especialidades' }, 'displayOrder', 'ASC'],
-      [{ model: MedicalSpecialty, as: 'especialidades' }, 'name', 'ASC'],
+      ["displayOrder", "ASC"],
+      ["name", "ASC"],
+      [
+        { model: MedicalSpecialty, as: "especialidades" },
+        "displayOrder",
+        "ASC",
+      ],
+      [{ model: MedicalSpecialty, as: "especialidades" }, "name", "ASC"],
     ],
   });
 
   const specialties = services.flatMap((service) => service.especialidades);
-  const doctorIds = new Set(specialties.flatMap((specialty) =>
-    specialty.medicos.map((doctor) => doctor.doctorId),
-  ));
-  const openSlots = await getOpenSlotsByDoctor([...doctorIds], getUpcomingAgendaDates());
+  const doctorIds = new Set(
+    specialties.flatMap((specialty) =>
+      specialty.medicos.map((doctor) => doctor.doctorId),
+    ),
+  );
+  const openSlots = await getOpenSlotsByDoctor(
+    [...doctorIds],
+    getUpcomingAgendaDates(),
+  );
 
   return services.map((service) => {
     const serviceSpecialties = service.especialidades.map((specialty) => ({
       id: specialty.slug,
       name: specialty.name,
-      available: specialty.medicos.some((doctor) => openSlots.has(doctor.doctorId)),
+      available: specialty.medicos.some((doctor) =>
+        openSlots.has(doctor.doctorId),
+      ),
     }));
-    const availableSpecialty = serviceSpecialties.find((specialty) => specialty.available);
+    const availableSpecialty = serviceSpecialties.find(
+      (specialty) => specialty.available,
+    );
 
     return {
       id: service.slug,

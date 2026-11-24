@@ -66,14 +66,35 @@
             href="#especialidades"
             ng-click="home.openSpecialties()"
             ng-attr-aria-current="{{home.view === 'specialties' ? 'page' : undefined}}"
-          >Especialidades</a>
+            >Especialidades</a
+          >
           <a href="#servicios" ng-click="home.openServices()">Servicios</a>
           <a href="#blog" ng-click="home.openBlog()">Blog</a>
           <a href="#contacto" ng-click="home.openContact()">Contacto</a>
-          <a class="mobile-auth-action" ng-if="!home.sessionUser" href="/login.html">Iniciar sesión</a>
-          <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'consumidor'" href="/profile.html">Mi perfil</a>
-          <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'administrador'" href="/admin.html">Administración</a>
-          <button type="button" class="mobile-auth-action" ng-if="home.sessionUser" ng-click="home.logout($event)">
+          <a
+            class="mobile-auth-action"
+            ng-if="!home.sessionUser"
+            href="/login.html"
+            >Iniciar sesión</a
+          >
+          <a
+            class="mobile-auth-action"
+            ng-if="home.sessionUser.role === 'consumidor'"
+            href="/profile.html"
+            >Mi perfil</a
+          >
+          <a
+            class="mobile-auth-action"
+            ng-if="home.sessionUser.role === 'administrador'"
+            href="/admin.html"
+            >Administración</a
+          >
+          <button
+            type="button"
+            class="mobile-auth-action"
+            ng-if="home.sessionUser"
+            ng-click="home.logout($event)"
+          >
             Cerrar sesión
           </button>
         </nav>
@@ -85,16 +106,33 @@
           >
             Agendar cita
           </button>
-          <a class="profile-button" ng-if="!home.sessionUser" href="/login.html">
+          <a
+            class="profile-button"
+            ng-if="!home.sessionUser"
+            href="/login.html"
+          >
             Iniciar sesión
           </a>
-          <a class="profile-button" ng-if="home.sessionUser.role === 'consumidor'" href="/profile.html">
+          <a
+            class="profile-button"
+            ng-if="home.sessionUser.role === 'consumidor'"
+            href="/profile.html"
+          >
             Mi perfil
           </a>
-          <a class="profile-button" ng-if="home.sessionUser.role === 'administrador'" href="/admin.html">
+          <a
+            class="profile-button"
+            ng-if="home.sessionUser.role === 'administrador'"
+            href="/admin.html"
+          >
             Administración
           </a>
-          <button type="button" class="auth-logout-button" ng-if="home.sessionUser" ng-click="home.logout($event)">
+          <button
+            type="button"
+            class="auth-logout-button"
+            ng-if="home.sessionUser"
+            ng-click="home.logout($event)"
+          >
             Cerrar sesión
           </button>
           <button
@@ -162,18 +200,17 @@
           </div>
         </div>
       </section>
-      <featured-services
-        ng-if="home.view === 'home'"
-      ></featured-services>
+      <featured-services ng-if="home.view === 'home'"></featured-services>
       <specialty-list
         ng-if="home.view === 'home'"
         on-book="home.openBooking(name, $event)"
         on-catalog="home.openSpecialties()"
       ></specialty-list>
-      <patient-reviews
-        ng-if="home.view === 'home'"
-      ></patient-reviews>
-      <div ng-if="home.view === 'contact'" ng-include="'/features/contacto/contacto.html'"></div>
+      <patient-reviews ng-if="home.view === 'home'"></patient-reviews>
+      <div
+        ng-if="home.view === 'contact'"
+        ng-include="'/features/contacto/contacto.html'"
+      ></div>
       <medical-blog
         ng-if="home.view === 'blog'"
         on-close="home.returnHome()"

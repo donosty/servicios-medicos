@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   register,
   login,
@@ -8,17 +8,20 @@ import {
   validatePasswordResetController,
   cancelPasswordResetController,
   resetPasswordController,
-} from '../controllers/authController.js';
+} from "../controllers/authController.js";
 
 const router = Router();
 
-router.post('/api/auth/register', register);
-router.post('/api/auth/login', login);
-router.get('/api/auth/session', session);
-router.post('/api/auth/logout', logout);
-router.post('/api/auth/password-reset/request', requestPasswordResetController);
-router.get('/api/auth/password-reset/validate', validatePasswordResetController);
-router.post('/api/auth/password-reset/cancel', cancelPasswordResetController);
-router.post('/api/auth/password-reset', resetPasswordController);
+router.post("/api/auth/register", register);
+router.post("/api/auth/login", login);
+router.get("/api/auth/session", session);
+router.post("/api/auth/logout", logout);
+router.post("/api/auth/password-reset/request", requestPasswordResetController);
+router.get(
+  "/api/auth/password-reset/validate",
+  validatePasswordResetController,
+);
+router.post("/api/auth/password-reset/cancel", cancelPasswordResetController);
+router.post("/api/auth/password-reset", resetPasswordController);
 
 export default router;

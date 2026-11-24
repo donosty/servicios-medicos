@@ -1,7 +1,4 @@
-<section
-  class="care-specialties"
-  aria-labelledby="titulo-especialidades"
->
+<section class="care-specialties" aria-labelledby="titulo-especialidades">
   <div class="home-wrap">
     <h2 id="titulo-especialidades" class="care-title" tabindex="-1">
       Especialidades Médicas
@@ -23,27 +20,27 @@
         class="care-specialty-grid"
         care-carousel-scroll="$ctrl.updateCarouselState()"
       >
-      <article
-        class="care-specialty-card"
-        ng-repeat="item in $ctrl.specialties track by item.id"
-      >
-        <img
-          ng-src="{{item.icon || '/assets/icons/' + item.id + '.webp'}}"
-          width="110"
-          height="110"
-          alt=""
-        />
-        <h3>{{item.name}}</h3>
-        <p>{{item.description}}</p>
-        <button
-          type="button"
-          class="care-book"
-          ng-attr-aria-label="Agendar cita en {{item.name}}"
-          ng-click="$ctrl.requestBooking(item, $event)"
+        <article
+          class="care-specialty-card"
+          ng-repeat="item in $ctrl.specialties track by item.id"
         >
-          Agendar cita
-        </button>
-      </article>
+          <img
+            ng-src="{{item.icon || '/assets/icons/' + item.id + '.webp'}}"
+            width="110"
+            height="110"
+            alt=""
+          />
+          <h3>{{item.name}}</h3>
+          <p>{{item.description}}</p>
+          <button
+            type="button"
+            class="care-book"
+            ng-attr-aria-label="Agendar cita en {{item.name}}"
+            ng-click="$ctrl.requestBooking(item, $event)"
+          >
+            Agendar cita
+          </button>
+        </article>
       </div>
       <button
         type="button"
@@ -68,7 +65,11 @@
         ng-attr-aria-current="{{$ctrl.currentPage === $index ? 'true' : undefined}}"
       ></button>
     </div>
-    <a class="care-book care-book-link" href="#especialidades" ng-click="$ctrl.onCatalog()">
+    <a
+      class="care-book care-book-link"
+      href="#especialidades"
+      ng-click="$ctrl.onCatalog()"
+    >
       Ver todas las especialidades
     </a>
   </div>

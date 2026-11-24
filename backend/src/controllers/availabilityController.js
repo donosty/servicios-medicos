@@ -1,11 +1,13 @@
-import { getAvailableTimes } from '../services/availabilityService.js';
-import { availabilitySchema } from '../validators/appointmentValidator.js';
+import { getAvailableTimes } from "../services/availabilityService.js";
+import { availabilitySchema } from "../validators/appointmentValidator.js";
 
 export const getAvailability = async (request, response, next) => {
   try {
     const parsed = availabilitySchema.safeParse(request.query);
     if (!parsed.success) {
-      return response.status(400).json({ message: 'Indica un médico y una fecha válidos.' });
+      return response
+        .status(400)
+        .json({ message: "Indica un médico y una fecha válidos." });
     }
 
     const { doctorId, date, excludeAppointmentId } = parsed.data;

@@ -24,7 +24,9 @@
     </header>
     <main class="home-wrap profile-layout">
       <aside class="profile-sidebar" aria-label="Datos principales">
-        <div class="profile-avatar" id="profile-initials" aria-hidden="true">M</div>
+        <div class="profile-avatar" id="profile-initials" aria-hidden="true">
+          M
+        </div>
         <h1 id="profile-name">Mi perfil</h1>
         <p id="profile-email">correo@ejemplo.com</p>
       </aside>
@@ -41,15 +43,35 @@
             <div class="profile-fields">
               <label>
                 Nombre completo
-                <input id="fullName" name="fullName" type="text" minlength="3" maxlength="120" required />
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  minlength="3"
+                  maxlength="120"
+                  required
+                />
               </label>
               <label>
                 Teléfono
-                <input id="phone" name="phone" type="tel" minlength="7" maxlength="25" required />
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  minlength="7"
+                  maxlength="25"
+                  required
+                />
               </label>
               <label class="profile-field-wide">
                 Correo electrónico
-                <input id="email" name="email" type="email" maxlength="254" required />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  maxlength="254"
+                  required
+                />
               </label>
             </div>
             <p id="profile-message" class="profile-message" role="status"></p>
@@ -64,16 +86,41 @@
               <h2 id="citas-titulo">Mis citas</h2>
             </div>
           </div>
-          <div class="appointment-tabs" role="tablist" aria-label="Tipo de citas">
-            <button id="scheduled-tab" type="button" role="tab" aria-selected="true" aria-controls="scheduled-panel">
+          <div
+            class="appointment-tabs"
+            role="tablist"
+            aria-label="Tipo de citas"
+          >
+            <button
+              id="scheduled-tab"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="scheduled-panel"
+            >
               Agendadas
             </button>
-            <button id="completed-tab" type="button" role="tab" aria-selected="false" aria-controls="completed-panel">
+            <button
+              id="completed-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="completed-panel"
+            >
               Completadas
             </button>
           </div>
-          <div id="scheduled-panel" role="tabpanel" aria-labelledby="scheduled-tab"></div>
-          <div id="completed-panel" role="tabpanel" aria-labelledby="completed-tab" hidden></div>
+          <div
+            id="scheduled-panel"
+            role="tabpanel"
+            aria-labelledby="scheduled-tab"
+          ></div>
+          <div
+            id="completed-panel"
+            role="tabpanel"
+            aria-labelledby="completed-tab"
+            hidden
+          ></div>
         </section>
       </div>
     </main>

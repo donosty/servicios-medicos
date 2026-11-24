@@ -6,8 +6,11 @@ featured-services {
   position: relative;
   z-index: 1;
   padding-block: clamp(32px, 4vw, 56px);
-  background:
-    linear-gradient(135deg, rgba(244, 249, 252, 0.96), rgba(227, 242, 251, 0.92));
+  background: linear-gradient(
+    135deg,
+    rgba(244, 249, 252, 0.96),
+    rgba(227, 242, 251, 0.92)
+  );
   border-bottom: 1px solid rgba(0, 59, 113, 0.08);
 }
 

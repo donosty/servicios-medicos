@@ -1,18 +1,20 @@
-import { Op } from 'sequelize';
-import { DoctorAvailabilitySlot, Appointment } from '../models/index.js';
+import { Op } from "sequelize";
+import { DoctorAvailabilitySlot, Appointment } from "../models/index.js";
 
-const agendaDate = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Mexico_City',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
+const agendaDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Mexico_City",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
 });
 
 const dayStart = (date) => new Date(`${date}T00:00:00Z`);
 const slotKey = (doctorId, dateTime) => `${doctorId}/${dateTime}`;
 
 export const getUpcomingAgendaDates = (now = new Date()) => {
-  const parts = Object.fromEntries(agendaDate.formatToParts(now).map(({ type, value }) => [type, value]));
+  const parts = Object.fromEntries(
+    agendaDate.formatToParts(now).map(({ type, value }) => [type, value]),
+  );
   const date = dayStart(`${parts.year}-${parts.month}-${parts.day}`);
   return Array.from({ length: 7 }, () => {
     date.setUTCDate(date.getUTCDate() + 1);
@@ -21,11 +23,17 @@ export const getUpcomingAgendaDates = (now = new Date()) => {
 };
 
 // The agenda queries one day at a time or the next seven consecutive days.
-export const getOpenSlotsByDoctor = async (doctorIds, dates, excludeAppointmentId) => {
+export const getOpenSlotsByDoctor = async (
+  doctorIds,
+  dates,
+  excludeAppointmentId,
+) => {
   const openSlots = new Map();
   if (doctorIds.length === 0) return openSlots;
 
-  const datesByWeekday = new Map(dates.map((date) => [dayStart(date).getUTCDay(), date]));
+  const datesByWeekday = new Map(
+    dates.map((date) => [dayStart(date).getUTCDay(), date]),
+  );
   const nextDay = dayStart(dates.at(-1));
   nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
@@ -36,22 +44,29 @@ export const getOpenSlotsByDoctor = async (doctorIds, dates, excludeAppointmentI
         dayOfWeek: { [Op.in]: [...datesByWeekday.keys()] },
         isActive: true,
       },
-      attributes: ['doctorId', 'dayOfWeek', 'startTime'],
-      order: [['startTime', 'ASC']],
+      attributes: ["doctorId", "dayOfWeek", "startTime"],
+      order: [["startTime", "ASC"]],
     }),
     Appointment.findAll({
       where: {
         doctorId: { [Op.in]: doctorIds },
         startAt: { [Op.gte]: dayStart(dates[0]), [Op.lt]: nextDay },
         statusId: { [Op.ne]: 4 },
-        ...(excludeAppointmentId ? { appointmentId: { [Op.ne]: excludeAppointmentId } } : {}),
+        ...(excludeAppointmentId
+          ? { appointmentId: { [Op.ne]: excludeAppointmentId } }
+          : {}),
       },
-      attributes: ['doctorId', 'startAt'],
+      attributes: ["doctorId", "startAt"],
     }),
   ]);
-  const bookedTimes = new Set(booked.map((appointment) =>
-    slotKey(appointment.doctorId, new Date(appointment.startAt).toISOString().slice(0, 16)),
-  ));
+  const bookedTimes = new Set(
+    booked.map((appointment) =>
+      slotKey(
+        appointment.doctorId,
+        new Date(appointment.startAt).toISOString().slice(0, 16),
+      ),
+    ),
+  );
 
   for (const slot of slots) {
     const date = datesByWeekday.get(slot.dayOfWeek);
@@ -66,7 +81,15 @@ export const getOpenSlotsByDoctor = async (doctorIds, dates, excludeAppointmentI
   return openSlots;
 };
 
-export const getAvailableTimes = async (doctorId, date, excludeAppointmentId) => {
-  const openSlots = await getOpenSlotsByDoctor([doctorId], [date], excludeAppointmentId);
+export const getAvailableTimes = async (
+  doctorId,
+  date,
+  excludeAppointmentId,
+) => {
+  const openSlots = await getOpenSlotsByDoctor(
+    [doctorId],
+    [date],
+    excludeAppointmentId,
+  );
   return openSlots.get(doctorId) ?? [];
 };

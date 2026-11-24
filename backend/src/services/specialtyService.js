@@ -1,10 +1,13 @@
-import { MedicalSpecialty } from '../models/index.js';
+import { MedicalSpecialty } from "../models/index.js";
 
 export const getActiveSpecialties = async () => {
   const specialties = await MedicalSpecialty.findAll({
     where: { isActive: true },
-    attributes: ['specialtyId', 'slug', 'name', 'description', 'iconPath'],
-    order: [['displayOrder', 'ASC'], ['name', 'ASC']],
+    attributes: ["specialtyId", "slug", "name", "description", "iconPath"],
+    order: [
+      ["displayOrder", "ASC"],
+      ["name", "ASC"],
+    ],
   });
 
   return specialties.map((specialty) => ({

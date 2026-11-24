@@ -121,7 +121,9 @@
   border: 1px solid #dde7ed;
   border-radius: 10px;
   padding: 12px;
-  transition: border-color 160ms, box-shadow 160ms;
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
 }
 .doctor-card.is-selected {
   border: 2px solid var(--cyan);

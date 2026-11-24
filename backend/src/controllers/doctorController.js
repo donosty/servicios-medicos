@@ -1,4 +1,4 @@
-import { getDoctors } from '../services/doctorService.js';
+import { getDoctors } from "../services/doctorService.js";
 
 export const getDoctorsController = async (request, response, next) => {
   try {

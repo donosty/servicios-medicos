@@ -1,11 +1,11 @@
-import { Sequelize } from 'sequelize';
+import { Sequelize } from "sequelize";
 
 const options = {
-  dialect: 'postgres',
+  dialect: "postgres",
   logging: false,
 };
 
-if (process.env.DB_SSL === 'true') {
+if (process.env.DB_SSL === "true") {
   options.dialectOptions = {
     ssl: {
       require: true,
@@ -22,7 +22,7 @@ const sequelize = process.env.DATABASE_URL
       process.env.DB_PASSWORD,
       {
         ...options,
-        host: process.env.DB_HOST || 'localhost',
+        host: process.env.DB_HOST || "localhost",
         port: Number(process.env.DB_PORT || 5432),
       },
     );

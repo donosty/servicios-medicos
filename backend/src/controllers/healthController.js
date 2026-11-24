@@ -1,3 +1,3 @@
 export const getHealth = (_request, response) => {
-  response.json({ status: 'ok' });
+  response.json({ status: "ok" });
 };
