@@ -77,6 +77,14 @@ El workflow requiere estos secretos en GitHub:
 - `DB_USER`
 - `DB_PASSWORD`
 - `DB_NAME`
+- `PASSWORD_RESET_SECRET`
+- `APP_PUBLIC_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM`
 - `CORS_ORIGINS`
 - `ADMIN_NAME`
 - `ADMIN_EMAIL`
@@ -84,3 +92,10 @@ El workflow requiere estos secretos en GitHub:
 
 Las imágenes se publican en Docker Hub y se despliegan desde GitHub Actions
 mediante IAP hacia Google Compute Engine.
+
+## Restablecimiento de contraseña
+
+Para Gmail, crea una contraseña de aplicación en la cuenta Google y configura
+`SMTP_USER` y `SMTP_PASSWORD`. `PASSWORD_RESET_SECRET` debe ser una clave larga
+aleatoria exclusiva del entorno. `APP_PUBLIC_URL` debe ser el dominio público
+HTTPS de la aplicación.

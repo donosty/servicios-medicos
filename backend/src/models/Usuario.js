@@ -12,6 +12,10 @@ const Usuario = sequelize.define(
     passwordHash: { type: DataTypes.TEXT, allowNull: false, field: 'contrasena_hash' },
     roleId: { type: DataTypes.SMALLINT, allowNull: false, field: 'id_rol' },
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, field: 'esta_activo' },
+    resetTokenActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'restablecimiento_token_activo' },
+    resetTokenHash: { type: DataTypes.TEXT, field: 'restablecimiento_token_hash' },
+    resetTokenJti: { type: DataTypes.TEXT, field: 'restablecimiento_jti' },
+    resetTokenExpiresAt: { type: DataTypes.DATE, field: 'restablecimiento_expira_en' },
   },
   { tableName: 'usuarios', timestamps: true, createdAt: 'creado_en', updatedAt: 'actualizado_en' },
 );

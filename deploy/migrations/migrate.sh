@@ -21,3 +21,7 @@ psql "$DATABASE_URL" \
 psql "$DATABASE_URL" \
   --set=ON_ERROR_STOP=1 \
   --file /migrations/database/migrations/normalizar-identificadores-medicos.sql
+
+psql "$DATABASE_URL" \
+  --set=ON_ERROR_STOP=1 \
+  --file /migrations/database/migrations/restablecimiento-password.sql

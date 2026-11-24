@@ -132,6 +132,14 @@ jobs:
           ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          PASSWORD_RESET_SECRET: ${{ secrets.PASSWORD_RESET_SECRET }}
+          APP_PUBLIC_URL: ${{ secrets.APP_PUBLIC_URL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
         run: |
           python3 - <<'PY'
           import json
@@ -158,6 +166,14 @@ jobs:
               "ADMIN_NAME": os.environ.get("ADMIN_NAME") or "Administrador MEDICOM",
               "ADMIN_EMAIL": os.environ["ADMIN_EMAIL"],
               "ADMIN_PASSWORD": os.environ["ADMIN_PASSWORD"],
+              "PASSWORD_RESET_SECRET": os.environ["PASSWORD_RESET_SECRET"],
+              "APP_PUBLIC_URL": os.environ["APP_PUBLIC_URL"],
+              "SMTP_HOST": os.environ.get("SMTP_HOST") or "smtp.gmail.com",
+              "SMTP_PORT": os.environ.get("SMTP_PORT") or "465",
+              "SMTP_SECURE": os.environ.get("SMTP_SECURE") or "true",
+              "SMTP_USER": os.environ["SMTP_USER"],
+              "SMTP_PASSWORD": os.environ["SMTP_PASSWORD"],
+              "SMTP_FROM": os.environ.get("SMTP_FROM") or os.environ["SMTP_USER"],
               "DOCKERHUB_USERNAME": dockerhub,
               "DOCKERHUB_TOKEN": os.environ["DOCKERHUB_TOKEN"],
           }

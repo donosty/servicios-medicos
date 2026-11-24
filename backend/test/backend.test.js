@@ -10,6 +10,11 @@ import {
 } from '../src/models/index.js';
 import { getUpcomingAgendaDates } from '../src/services/availabilityService.js';
 import { appointmentSchema } from '../src/validators/appointmentValidator.js';
+import {
+  passwordResetRequestSchema,
+  passwordResetTokenSchema,
+  passwordResetSchema,
+} from '../src/validators/authValidator.js';
 
 const doctorId = '1f2b7e21-72dc-4f0d-b27a-8a4a1f4c6e10';
 let server;
@@ -226,4 +231,24 @@ test('appointment schema acepta cita sin datos personales repetidos', () => {
     time: '09:30',
   });
   assert.equal(result.success, true);
+});
+
+test('solicitud de restablecimiento conserva una respuesta genérica', async () => {
+  const response = await fetch(`${baseUrl}/api/auth/password-reset/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'no-existe@example.com' }),
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    message: 'Si existe una cuenta con este correo, se te enviará un enlace para restablecer la contraseña.',
+  });
+});
+
+test('esquemas de restablecimiento validan correo, token y contraseña', () => {
+  assert.equal(passwordResetRequestSchema.safeParse({ email: 'paciente@example.com' }).success, true);
+  assert.equal(passwordResetRequestSchema.safeParse({ email: 'correo-invalido' }).success, false);
+  assert.equal(passwordResetTokenSchema.safeParse({ token: 'token-de-restablecimiento-seguro' }).success, true);
+  assert.equal(passwordResetSchema.safeParse({ token: 'token-de-restablecimiento-seguro', password: 'Nueva1234!' }).success, true);
+  assert.equal(passwordResetSchema.safeParse({ token: 'token-de-restablecimiento-seguro', password: 'corta' }).success, false);
 });

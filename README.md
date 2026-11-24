@@ -167,6 +167,14 @@ Secretos mínimos:
 - `DB_USER`
 - `DB_PASSWORD`
 - `DB_NAME`
+- `PASSWORD_RESET_SECRET`
+- `APP_PUBLIC_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM`
 
 ## Plan de despliegue
 

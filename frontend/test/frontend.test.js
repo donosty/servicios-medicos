@@ -67,6 +67,29 @@ test("perfil incluye datos editables y citas separadas", async () => {
   assert.match(script, /Cambio no disponible a menos de 24 horas/);
 });
 
+test("login ofrece restablecimiento y las vistas cuentan con formularios seguros", async () => {
+  const login = await readFile(new URL("login.html", sourcePath), "utf8");
+  assert.match(login, /forgot-password\.html/);
+
+  const forgot = await readFile(new URL("forgot-password.html", sourcePath), "utf8");
+  assert.match(forgot, /forgot-password-form/);
+  const forgotScript = await readFile(
+    new URL("features/auth/forgot-password.js", sourcePath),
+    "utf8",
+  );
+  assert.match(forgotScript, /5000/);
+  assert.match(forgotScript, /Si existe una cuenta con este correo/);
+
+  const reset = await readFile(new URL("reset-password.html", sourcePath), "utf8");
+  assert.match(reset, /reset-password-form/);
+  const resetScript = await readFile(
+    new URL("features/auth/reset-password.js", sourcePath),
+    "utf8",
+  );
+  assert.match(resetScript, /password-reset\/validate/);
+  assert.match(resetScript, /password-reset\/cancel/);
+});
+
 test("los estilos globales y del perfil comparten la paleta MEDICOM", async () => {
   const globalStyles = await readFile(new URL("styles.css", sourcePath), "utf8");
   const profileStyles = await readFile(

@@ -29,6 +29,14 @@ services:
       DB_NAME: ${DB_NAME:?DB_NAME is required}
       DB_SSL: "false"
       CORS_ORIGINS: ${CORS_ORIGINS}
+      PASSWORD_RESET_SECRET: ${PASSWORD_RESET_SECRET:?PASSWORD_RESET_SECRET is required}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:?SMTP_USER is required}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?SMTP_PASSWORD is required}
+      SMTP_FROM: ${SMTP_FROM:-MEDICOM <no-reply@medicom.com>}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:?APP_PUBLIC_URL is required}
     depends_on:
       db:
         condition: service_healthy
