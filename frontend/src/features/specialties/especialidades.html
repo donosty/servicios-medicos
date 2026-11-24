@@ -1,0 +1,50 @@
+<section class="medical-services specialty-catalog" aria-labelledby="especialidades-catalogo-titulo">
+  <div class="home-wrap">
+    <a href="#inicio" class="services-back" ng-click="$ctrl.onClose()">
+      <span aria-hidden="true">←</span> Volver al inicio
+    </a>
+    <div class="services-hero">
+      <div class="services-hero-copy">
+        <h1 id="especialidades-catalogo-titulo" tabindex="-1">Especialidades <span>médicas</span></h1>
+        <p>Conoce qué atiende cada especialidad y elige una para consultar sus horarios.</p>
+        <label class="services-search">
+          <svg width="18" height="18" aria-hidden="true"><use href="/assets/ui.svg#search"></use></svg>
+          <span class="visually-hidden">Buscar una especialidad por nombre</span>
+          <input type="search" ng-model="$ctrl.query" placeholder="Buscar una especialidad por nombre" />
+        </label>
+      </div>
+      <img class="specialty-hero-photo" src="/assets/equipo-medico.webp" width="841" height="683" alt="" />
+    </div>
+
+    <p class="specialty-results" role="status" aria-atomic="true">
+      <span ng-if="!$ctrl.specialties.length">Cargando especialidades…</span>
+      <span ng-if="$ctrl.specialties.length && $ctrl.matches.length">
+        {{$ctrl.matches.length}} {{$ctrl.matches.length === 1 ? 'especialidad' : 'especialidades'}}
+      </span>
+      <span ng-if="$ctrl.specialties.length && !$ctrl.matches.length">
+        No encontramos especialidades que coincidan con «{{$ctrl.query}}».
+      </span>
+    </p>
+
+    <div class="services-grid">
+      <article class="service-card" ng-repeat="item in $ctrl.matches track by item.id">
+        <img class="specialty-icon" ng-if="item.icon" ng-src="{{item.icon}}" width="72" height="72" alt="" />
+        <h2>{{item.name}}</h2>
+        <p>{{item.description}}</p>
+        <button
+          type="button"
+          class="service-book"
+          ng-attr-aria-label="Agendar cita en {{item.name}}"
+          ng-click="$ctrl.onBook({name: item.name, $event: $event})"
+        >
+          Agendar cita <span aria-hidden="true">→</span>
+        </button>
+      </article>
+    </div>
+    <div class="services-empty" ng-if="$ctrl.specialties.length && !$ctrl.matches.length">
+      <button type="button" class="btn btn-outline-primary" ng-click="$ctrl.query = ''">
+        Ver todas las especialidades
+      </button>
+    </div>
+  </div>
+</section>

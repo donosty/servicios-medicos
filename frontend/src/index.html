@@ -25,6 +25,8 @@
     <link rel="stylesheet" href="/features/services/featured-services.css" />
     <link rel="stylesheet" href="/features/nosotros/nosotros.css" />
     <link rel="stylesheet" href="/features/servicios/servicios-medicos.css" />
+    <link rel="stylesheet" href="/features/specialties/especialidades.css" />
+    <link rel="stylesheet" href="/features/contacto/contacto.css" />
     <link rel="stylesheet" href="/features/blog/blog.css" />
     <link rel="stylesheet" href="/features/auth/auth.css" />
   </head>
@@ -54,24 +56,20 @@
         >
           <a
             href="#inicio"
-            ng-attr-aria-current="{{home.bookingOpen ? undefined : 'page'}}"
+            ng-attr-aria-current="{{home.view === 'home' ? 'page' : undefined}}"
             ng-click="home.returnHome()"
           >
             Inicio
           </a>
           <a href="#nosotros" ng-click="home.openAbout()">Nosotros</a>
-          <a href="#especialidades" ng-click="home.returnHome()"
-            >Especialidades</a
-          >
+          <a
+            href="#especialidades"
+            ng-click="home.openSpecialties()"
+            ng-attr-aria-current="{{home.view === 'specialties' ? 'page' : undefined}}"
+          >Especialidades</a>
           <a href="#servicios" ng-click="home.openServices()">Servicios</a>
           <a href="#blog" ng-click="home.openBlog()">Blog</a>
-          <button
-            type="button"
-            ng-click="home.showNotice('El directorio de médicos estará disponible próximamente.', $event)"
-          >
-            Médicos
-          </button>
-          <a href="#contacto" ng-click="home.closeMenu()">Contacto</a>
+          <a href="#contacto" ng-click="home.openContact()">Contacto</a>
           <a class="mobile-auth-action" ng-if="!home.sessionUser" href="/login.html">Iniciar sesión</a>
           <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'consumidor'" href="/profile.html">Mi perfil</a>
           <a class="mobile-auth-action" ng-if="home.sessionUser.role === 'administrador'" href="/admin.html">Administración</a>
@@ -119,7 +117,7 @@
       <section
         class="hero"
         aria-labelledby="hero-title"
-        ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
+        ng-if="home.view === 'home'"
       >
         <img
           class="hero-team"
@@ -143,7 +141,7 @@
               class="specialty-search"
               role="search"
               aria-label="Buscar especialidades"
-              ng-submit="home.search()"
+              ng-submit="home.openSpecialties(home.searchText)"
             >
               <label for="busqueda" class="visually-hidden"
                 >Busca una especialidad</label
@@ -165,38 +163,43 @@
         </div>
       </section>
       <featured-services
-        ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
+        ng-if="home.view === 'home'"
       ></featured-services>
       <specialty-list
-        id="especialidades"
-        tabindex="-1"
-        ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
-        query="home.query"
+        ng-if="home.view === 'home'"
         on-book="home.openBooking(name, $event)"
-        on-clear="home.clearSearch()"
+        on-catalog="home.openSpecialties()"
       ></specialty-list>
       <patient-reviews
-        ng-if="!home.bookingOpen && !home.servicesOpen && !home.blogOpen && !home.aboutOpen"
+        ng-if="home.view === 'home'"
       ></patient-reviews>
+      <div ng-if="home.view === 'contact'" ng-include="'/features/contacto/contacto.html'"></div>
       <medical-blog
-        ng-if="home.blogOpen"
+        ng-if="home.view === 'blog'"
         on-close="home.returnHome()"
         on-book="home.openBooking(name, $event)"
       ></medical-blog>
+      <specialty-catalog
+        id="especialidades"
+        ng-if="home.view === 'specialties'"
+        query="home.catalogQuery"
+        on-close="home.returnHome()"
+        on-book="home.openBooking(name)"
+      ></specialty-catalog>
       <medical-services
-        ng-if="home.servicesOpen"
+        ng-if="home.view === 'services'"
         on-close="home.returnHome()"
         on-book="home.openBooking(name, $event)"
       ></medical-services>
       <appointment-booking
-        ng-if="home.bookingOpen"
+        ng-if="home.view === 'booking'"
         specialty-name="home.bookingSpecialty"
         session-user="home.sessionUser"
         resume="home.resumeBooking"
         on-close="home.closeBooking()"
       ></appointment-booking>
       <medical-about
-        ng-if="home.aboutOpen"
+        ng-if="home.view === 'about'"
         on-close="home.returnHome()"
         on-book="home.openBooking(name, $event)"
       ></medical-about>
@@ -204,8 +207,9 @@
     <home-footer
       on-home="home.returnHome()"
       on-notice="home.showNotice(message, $event)"
-      on-select="home.filterBy(name)"
+      on-select="home.openSpecialties(name)"
       on-services="home.openServices()"
+      on-contact="home.openContact()"
       on-blog="home.openBlog()"
       on-about="home.openAbout()"
     ></home-footer>
@@ -234,6 +238,7 @@
     <script src="/app/controllers/home.controller.js"></script>
     <script src="/app/components/footer.component.js"></script>
     <script src="/features/specialties/specialties.service.js"></script>
+    <script src="/features/specialties/especialidades.component.js"></script>
     <script src="/features/specialties/care-carousel.directive.js"></script>
     <script src="/features/specialties/specialty-list.component.js"></script>
     <script src="/features/booking/booking.component.js"></script>

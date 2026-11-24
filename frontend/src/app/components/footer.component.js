@@ -8,6 +8,7 @@
       onNotice: "&",
       onSelect: "&",
       onServices: "&",
+      onContact: "&",
       onBlog: "&",
       onAbout: "&",
     },

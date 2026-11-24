@@ -153,6 +153,9 @@ care-benefits {
 }
 
 .care-book-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1rem;
   background: transparent;
   color: #047154;
   text-decoration: underline;

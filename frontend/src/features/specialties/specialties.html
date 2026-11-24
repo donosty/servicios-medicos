@@ -9,24 +9,7 @@
     <p class="care-intro">
       Encuentra la atención que necesitas para ti y tu familia.
     </p>
-    <p class="visually-hidden" role="status" aria-atomic="true">
-      <span ng-if="$ctrl.query && $ctrl.filtered.length"
-        >{{$ctrl.filtered.length}} de 4 especialidades.</span
-      >
-      <span ng-if="$ctrl.query && !$ctrl.filtered.length"
-        >No se encontraron especialidades.</span
-      >
-    </p>
-    <p ng-if="$ctrl.query && $ctrl.filtered.length">
-      <button
-        type="button"
-        class="care-book care-book-link"
-        ng-click="$ctrl.onClear()"
-      >
-        Ver todas las especialidades
-      </button>
-    </p>
-    <div class="care-specialty-carousel" ng-if="$ctrl.filtered.length">
+    <div class="care-specialty-carousel" ng-if="$ctrl.specialties.length">
       <button
         type="button"
         class="care-specialty-arrow care-specialty-prev"
@@ -42,7 +25,7 @@
       >
       <article
         class="care-specialty-card"
-        ng-repeat="item in $ctrl.filtered track by item.id"
+        ng-repeat="item in $ctrl.specialties track by item.id"
       >
         <img
           ng-src="{{item.icon || '/assets/icons/' + item.id + '.webp'}}"
@@ -78,18 +61,15 @@
     >
       <button
         type="button"
-        ng-repeat="item in $ctrl.filtered track by item.id"
+        ng-repeat="item in $ctrl.specialties track by item.id"
         ng-class="{'is-active': $ctrl.currentPage === $index}"
         ng-click="$ctrl.goTo($index)"
         ng-attr-aria-label="Ir a {{item.name}}"
         ng-attr-aria-current="{{$ctrl.currentPage === $index ? 'true' : undefined}}"
       ></button>
     </div>
-    <div class="care-empty" ng-if="!$ctrl.filtered.length">
-      <p>No encontramos especialidades que coincidan con «{{$ctrl.query}}».</p>
-      <button type="button" class="care-book" ng-click="$ctrl.onClear()">
-        Ver todas las especialidades
-      </button>
-    </div>
+    <a class="care-book care-book-link" href="#especialidades" ng-click="$ctrl.onCatalog()">
+      Ver todas las especialidades
+    </a>
   </div>
 </section>

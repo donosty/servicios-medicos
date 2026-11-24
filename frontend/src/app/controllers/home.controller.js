@@ -11,14 +11,11 @@
       const doc = $document[0];
 
       home.searchText = "";
-      home.query = "";
+      home.catalogQuery = "";
       home.menuOpen = false;
-      home.bookingOpen = false;
+      home.view = "home";
       home.bookingSpecialty = "";
       home.resumeBooking = false;
-      home.servicesOpen = false;
-      home.blogOpen = false;
-      home.aboutOpen = false;
       home.sessionUser = null;
 
       home.toggleMenu = function () {
@@ -63,54 +60,31 @@
       };
 
       home.returnHome = function () {
-        home.bookingOpen = false;
-        home.servicesOpen = false;
-        home.blogOpen = false;
-        home.aboutOpen = false;
+        home.view = "home";
         home.closeMenu();
       };
 
-      home.filterBy = function (name) {
-        home.returnHome();
-        home.searchText = name;
-        home.query = name.trim();
-        $timeout(
-          () => {
-            const section = doc.getElementById("especialidades");
-            if (section) {
-              const heading = doc.getElementById("titulo-especialidades");
-              (heading || section).focus({ preventScroll: true });
-              section.scrollIntoView();
-            }
-          },
-          0,
-          false,
-        );
-      };
+      function openView(view, titleId) {
+        home.view = view;
+        home.closeMenu();
+        $timeout(function () {
+          if (home.view !== view) return;
+          const content = doc.getElementById("contenido");
+          const title = titleId && doc.getElementById(titleId);
+          (title || content).focus({ preventScroll: true });
+          content.scrollIntoView();
+        }, 0, false);
+      }
 
-      home.search = function () {
-        home.filterBy(home.searchText || "");
+      home.openSpecialties = function (query) {
+        home.catalogQuery = (query || "").trim();
+        openView("specialties", "especialidades-catalogo-titulo");
       };
 
       home.openBooking = function (name) {
-        home.bookingOpen = true;
         home.resumeBooking = false;
-        home.servicesOpen = false;
-        home.blogOpen = false;
-        home.aboutOpen = false;
         home.bookingSpecialty = name || "";
-        home.closeMenu();
-        $timeout(
-          () => {
-            const heading = doc.getElementById("agenda-titulo");
-            if (heading) {
-              heading.focus();
-              doc.getElementById("contenido").scrollIntoView();
-            }
-          },
-          0,
-          false,
-        );
+        openView("booking", "agenda-titulo");
       };
 
       home.closeBooking = function () {
@@ -120,10 +94,6 @@
           0,
           false,
         );
-      };
-
-      home.clearSearch = function () {
-        home.filterBy("");
       };
 
       home.logout = function (event) {
@@ -140,60 +110,19 @@
       };
 
       home.openServices = function () {
-        home.bookingOpen = false;
-        home.servicesOpen = true;
-        home.blogOpen = false;
-        home.aboutOpen = false;
-        home.closeMenu();
-        $timeout(
-          function () {
-            const title = doc.getElementById("servicios-medicos-titulo");
-            if (title) {
-              title.focus({ preventScroll: true });
-            }
-            doc.getElementById("contenido").scrollIntoView();
-          },
-          0,
-          false,
-        );
+        openView("services", "servicios-medicos-titulo");
+      };
+
+      home.openContact = function () {
+        openView("contact");
       };
 
       home.openBlog = function () {
-        home.bookingOpen = false;
-        home.servicesOpen = false;
-        home.blogOpen = true;
-        home.aboutOpen = false;
-        home.closeMenu();
-        $timeout(
-          function () {
-            const title = doc.getElementById("blog-titulo");
-            if (title) {
-              title.focus({ preventScroll: true });
-            }
-            doc.getElementById("contenido").scrollIntoView();
-          },
-          0,
-          false,
-        );
+        openView("blog", "blog-titulo");
       };
 
       home.openAbout = function () {
-        home.bookingOpen = false;
-        home.servicesOpen = false;
-        home.blogOpen = false;
-        home.aboutOpen = true;
-        home.closeMenu();
-        $timeout(
-          function () {
-            const title = doc.getElementById("nosotros-titulo");
-            if (title) {
-              title.focus({ preventScroll: true });
-            }
-            doc.getElementById("contenido").scrollIntoView();
-          },
-          0,
-          false,
-        );
+        openView("about", "nosotros-titulo");
       };
 
       api.getSession().then(function (response) {
@@ -206,6 +135,8 @@
         $window.history.replaceState(null, "", url);
         home.openBooking();
         home.resumeBooking = true;
+      } else if (url.hash === "#especialidades") {
+        home.openSpecialties();
       }
     },
   ]);
