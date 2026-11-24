@@ -438,19 +438,6 @@ SET nombre = EXCLUDED.nombre;
 \getenv ADMIN_PASSWORD ADMIN_PASSWORD
 \endif
 
-\if :'ADMIN_EMAIL' = ''
-\echo 'ERROR: Define ADMIN_EMAIL antes de inicializar la base de datos.'
-\quit
-\endif
-\if :'ADMIN_PASSWORD' = ''
-\echo 'ERROR: Define ADMIN_PASSWORD antes de inicializar la base de datos.'
-\quit
-\endif
-
-\if :'ADMIN_NAME' = ''
-\set ADMIN_NAME 'Administrador MEDICOM'
-\endif
-
 INSERT INTO usuarios (
     nombre_completo,
     correo,
@@ -459,7 +446,7 @@ INSERT INTO usuarios (
     id_rol
 )
 SELECT
-    :'ADMIN_NAME',
+    COALESCE(NULLIF(:'ADMIN_NAME', ''), 'Administrador MEDICOM'),
     :'ADMIN_EMAIL',
     NULL,
     crypt(:'ADMIN_PASSWORD', gen_salt('bf', 12)),
