@@ -316,6 +316,8 @@ export const rescheduleUserAppointment = async (userId, appointmentId, data) =>
 
     return {
       appointmentId: appointment.appointmentId,
+      previousDate: previousVersion.date,
+      previousTime: previousVersion.time,
       folio: appointment.folio,
       date: data.date,
       time: data.time,
