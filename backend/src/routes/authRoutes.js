@@ -16,15 +16,12 @@ import {
 const router = Router();
 
 router.post("/api/auth/register", register);
-<<<<<<< HEAD
 router.post("/api/auth/reactivate", reactivate);
-=======
 router.post("/api/auth/email-confirmation/confirm", confirmEmailController);
 router.post(
   "/api/auth/email-confirmation/resend",
   resendEmailConfirmationController,
 );
->>>>>>> beeaa7f (Confirmar cuenta y folio)
 router.post("/api/auth/login", login);
 router.get("/api/auth/session", session);
 router.post("/api/auth/logout", logout);

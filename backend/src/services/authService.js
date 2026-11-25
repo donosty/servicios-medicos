@@ -151,7 +151,6 @@ export const registerUser = async (data) =>
     };
   });
 
-<<<<<<< HEAD
 export const reactivateUser = async (email, password) =>
   sequelize.transaction(async (transaction) => {
     const user = await Usuario.findOne({
@@ -174,7 +173,6 @@ export const reactivateUser = async (email, password) =>
     );
   });
 
-=======
 const deliverEmailConfirmation = async (user) => {
   assertSmtpConfigured();
 
@@ -290,7 +288,6 @@ export const confirmEmail = async (token) => {
   });
 };
 
->>>>>>> beeaa7f (Confirmar cuenta y folio)
 export const loginUser = async (email, password) => {
   const user = await Usuario.findOne({
     where: { email: email.toLowerCase(), isActive: true },
@@ -373,13 +370,8 @@ export const requestPasswordReset = async (email, reactivate = false) => {
   const jti = randomUUID();
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000);
   const token = jwt.sign(
-<<<<<<< HEAD
     { type: "password_reset", sub: user.userId, jti, reactivate },
-    getPasswordResetSecret(),
-=======
-    { type: "password_reset", sub: user.userId, jti },
     getAuthTokenSecret(),
->>>>>>> beeaa7f (Confirmar cuenta y folio)
     { expiresIn: `${PASSWORD_RESET_MINUTES}m` },
   );
 
