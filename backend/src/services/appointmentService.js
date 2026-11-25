@@ -158,5 +158,7 @@ export const createAppointment = async (data, user) =>
       doctor: `${doctor.professionalTitle} ${doctor.firstName} ${doctor.lastName}`,
       date: data.date,
       time: data.time,
+      patientName,
+      patientEmail,
     };
   });

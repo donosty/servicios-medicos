@@ -211,6 +211,31 @@ test("confirmar una cita requiere sesión", async () => {
   });
 });
 
+test("confirmar correo requiere un token válido", async () => {
+  const response = await fetch(
+    `${baseUrl}/api/auth/email-confirmation/confirm`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: "invalido" }),
+    },
+  );
+  assert.equal(response.status, 410);
+});
+
+test("reenviar confirmación responde de forma genérica ante un correo inválido", async () => {
+  const response = await fetch(
+    `${baseUrl}/api/auth/email-confirmation/resend`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "correo-invalido" }),
+    },
+  );
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).message, /Si la cuenta necesita confirmación/);
+});
+
 test("el perfil y las citas personales requieren sesión", async () => {
   for (const [route, method] of [
     ["/api/profile", "GET"],

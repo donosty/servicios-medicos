@@ -17,8 +17,9 @@ export const hashSessionToken = (token) =>
   createHash("sha256").update(token).digest("hex");
 
 const PASSWORD_RESET_MINUTES = 30;
+const EMAIL_CONFIRMATION_HOURS = 24;
 
-const getPasswordResetSecret = () => {
+const getAuthTokenSecret = () => {
   const secret = process.env.PASSWORD_RESET_SECRET;
   if (!secret && process.env.NODE_ENV === "production") {
     throw createError("PASSWORD_RESET_SECRET no está configurado.", 500);
@@ -26,10 +27,22 @@ const getPasswordResetSecret = () => {
   return secret || "desarrollo-restablecimiento-local";
 };
 
-const hashPasswordResetToken = (token) =>
+const hashAuthToken = (token) =>
   createHash("sha256").update(token).digest("hex");
 
-const createPasswordResetTransport = () =>
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[character];
+  });
+
+const createSmtpTransport = () =>
   nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 465),
@@ -40,10 +53,21 @@ const createPasswordResetTransport = () =>
     },
   });
 
+const assertSmtpConfigured = () => {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASSWORD
+  ) {
+    throw new Error("La configuración SMTP no está completa.");
+  }
+};
+
 const verifyPasswordResetToken = async (token) => {
+  const secret = getAuthTokenSecret();
   let payload;
   try {
-    payload = jwt.verify(token, getPasswordResetSecret());
+    payload = jwt.verify(token, secret);
   } catch (_error) {
     throw createError(
       "El enlace de restablecimiento no es válido o expiró.",
@@ -57,10 +81,10 @@ const verifyPasswordResetToken = async (token) => {
   const user = await Usuario.findByPk(payload.sub);
   if (
     !user ||
-    !user.isActive ||
+    (!user.isActive && payload.reactivate !== true) ||
     !user.resetTokenActive ||
     user.resetTokenJti !== payload.jti ||
-    user.resetTokenHash !== hashPasswordResetToken(token) ||
+    user.resetTokenHash !== hashAuthToken(token) ||
     !user.resetTokenExpiresAt ||
     user.resetTokenExpiresAt <= new Date()
   ) {
@@ -85,6 +109,14 @@ export const registerUser = async (data) =>
 
     const email = data.email.toLowerCase();
     const existing = await Usuario.findOne({ where: { email }, transaction });
+    if (existing && !existing.isActive && existing.roleId === role.roleId) {
+      const error = createError(
+        "Ya tuviste una cuenta con este correo. ¿Deseas reactivarla?",
+        409,
+      );
+      error.code = "ACCOUNT_INACTIVE";
+      throw error;
+    }
     if (existing)
       throw createError("Ya existe una cuenta con este correo.", 409);
 
@@ -107,6 +139,7 @@ export const registerUser = async (data) =>
         passwordHash,
         roleId: role.roleId,
         isActive: true,
+        emailConfirmed: false,
       },
       { transaction },
     );
@@ -118,6 +151,143 @@ export const registerUser = async (data) =>
     };
   });
 
+export const reactivateUser = async (email, password) =>
+  sequelize.transaction(async (transaction) => {
+    const user = await Usuario.findOne({
+      where: { email: email.toLowerCase(), isActive: false },
+      include: [
+        { model: RolUsuario, as: "rol", where: { code: "consumidor" } },
+      ],
+      transaction,
+      lock: { level: transaction.LOCK.UPDATE, of: Usuario },
+    });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+      throw createError(
+        "Ingresa la contraseña de tu cuenta anterior o recupérala por correo.",
+        401,
+      );
+    }
+    await user.update(
+      { isActive: true, resetTokenActive: false },
+      { transaction },
+    );
+  });
+
+const deliverEmailConfirmation = async (user) => {
+  assertSmtpConfigured();
+
+  const jti = randomUUID();
+  const token = jwt.sign(
+    { type: "email_confirmation", sub: user.userId, jti },
+    getAuthTokenSecret(),
+    { expiresIn: `${EMAIL_CONFIRMATION_HOURS}h` },
+  );
+  const expiresAt = new Date(
+    Date.now() + EMAIL_CONFIRMATION_HOURS * 60 * 60 * 1000,
+  );
+  await user.update({
+    emailConfirmationTokenActive: true,
+    emailConfirmationTokenHash: hashAuthToken(token),
+    emailConfirmationJti: jti,
+    emailConfirmationExpiresAt: expiresAt,
+  });
+
+  const publicUrl = (
+    process.env.APP_PUBLIC_URL || "http://localhost:4200"
+  ).replace(/\/$/, "");
+  const confirmationUrl = `${publicUrl}/confirm-email.html#token=${encodeURIComponent(token)}`;
+  const transporter = createSmtpTransport();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: user.email,
+    subject: "Confirma tu correo electrónico de MEDICOM",
+    text:
+      `Hola ${user.fullName},\n\n` +
+      "Confirma tu correo electrónico para activar tu cuenta de MEDICOM:\n" +
+      `${confirmationUrl}\n\n` +
+      `El enlace expirará en ${EMAIL_CONFIRMATION_HOURS} horas.`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#243447">
+        <h2 style="color:#003b71">Confirma tu correo electrónico</h2>
+        <p>Hola ${escapeHtml(user.fullName)},</p>
+        <p>Confirma tu correo para activar tu cuenta de MEDICOM.</p>
+        <p>
+          <a href="${confirmationUrl}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#009fd9;color:#fff;text-decoration:none">
+            Confirmar correo
+          </a>
+        </p>
+        <p>El enlace expirará en ${EMAIL_CONFIRMATION_HOURS} horas.</p>
+      </div>
+    `,
+  });
+};
+
+const findUnconfirmedUser = (where) =>
+  Usuario.findOne({
+    where: { ...where, isActive: true, emailConfirmed: false },
+  });
+
+export const sendEmailConfirmation = async (userId) => {
+  const user = await findUnconfirmedUser({ userId });
+  if (!user) return false;
+  await deliverEmailConfirmation(user);
+  return true;
+};
+
+export const resendEmailConfirmation = async (email) => {
+  const user = await findUnconfirmedUser({ email: email.trim().toLowerCase() });
+  if (!user) return;
+  await deliverEmailConfirmation(user);
+};
+
+export const confirmEmail = async (token) => {
+  const secret = getAuthTokenSecret();
+  let payload;
+  try {
+    payload = jwt.verify(token, secret);
+  } catch (_error) {
+    throw createError("El enlace de confirmación no es válido o expiró.", 410);
+  }
+  if (
+    payload.type !== "email_confirmation" ||
+    !payload.sub ||
+    !payload.jti
+  ) {
+    throw createError("El enlace de confirmación no es válido.", 410);
+  }
+
+  return sequelize.transaction(async (transaction) => {
+    const user = await Usuario.findByPk(payload.sub, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (
+      !user ||
+      !user.isActive ||
+      user.emailConfirmed ||
+      !user.emailConfirmationTokenActive ||
+      user.emailConfirmationJti !== payload.jti ||
+      user.emailConfirmationTokenHash !== hashAuthToken(token) ||
+      !user.emailConfirmationExpiresAt ||
+      user.emailConfirmationExpiresAt <= new Date()
+    ) {
+      throw createError("El enlace de confirmación ya no está activo.", 410);
+    }
+
+    await user.update(
+      {
+        emailConfirmed: true,
+        emailConfirmationTokenActive: false,
+        emailConfirmationTokenHash: null,
+        emailConfirmationJti: null,
+        emailConfirmationExpiresAt: null,
+      },
+      { transaction },
+    );
+    return true;
+  });
+};
+
 export const loginUser = async (email, password) => {
   const user = await Usuario.findOne({
     where: { email: email.toLowerCase(), isActive: true },
@@ -125,6 +295,9 @@ export const loginUser = async (email, password) => {
   });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     throw createError("Correo o contraseña incorrectos.", 401);
+  }
+  if (!user.emailConfirmed) {
+    throw createError("Confirma tu correo antes de iniciar sesión.", 403);
   }
 
   const token = randomBytes(32).toString("base64url");
@@ -155,7 +328,7 @@ export const getSessionUser = async (token) => {
       {
         model: Usuario,
         as: "usuario",
-        where: { isActive: true },
+        where: { isActive: true, emailConfirmed: true },
         required: true,
         include: [{ model: RolUsuario, as: "rol", required: true }],
       },
@@ -182,56 +355,58 @@ export const logoutSession = async (token) => {
   });
 };
 
-export const requestPasswordReset = async (email) => {
+export const requestPasswordReset = async (email, reactivate = false) => {
   const normalizedEmail = email.trim().toLowerCase();
   const user = await Usuario.findOne({
-    where: { email: normalizedEmail, isActive: true },
+    where: { email: normalizedEmail, isActive: !reactivate },
+    ...(reactivate && {
+      include: [
+        { model: RolUsuario, as: "rol", where: { code: "consumidor" } },
+      ],
+    }),
   });
   if (!user) return;
 
   const jti = randomUUID();
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000);
   const token = jwt.sign(
-    { type: "password_reset", sub: user.userId, jti },
-    getPasswordResetSecret(),
+    { type: "password_reset", sub: user.userId, jti, reactivate },
+    getAuthTokenSecret(),
     { expiresIn: `${PASSWORD_RESET_MINUTES}m` },
   );
 
   await user.update({
     resetTokenActive: true,
-    resetTokenHash: hashPasswordResetToken(token),
+    resetTokenHash: hashAuthToken(token),
     resetTokenJti: jti,
     resetTokenExpiresAt: expiresAt,
   });
 
   try {
-    if (
-      !process.env.SMTP_HOST ||
-      !process.env.SMTP_USER ||
-      !process.env.SMTP_PASSWORD
-    ) {
-      throw new Error("La configuración SMTP no está completa.");
-    }
+    assertSmtpConfigured();
 
     const publicUrl = (
       process.env.APP_PUBLIC_URL || "http://localhost:4200"
     ).replace(/\/$/, "");
     const resetUrl = `${publicUrl}/reset-password.html?token=${encodeURIComponent(token)}`;
-    const transporter = createPasswordResetTransport();
+    const transporter = createSmtpTransport();
 
+    const instruction = reactivate
+      ? "Usa este enlace para crear una nueva contraseña y reactivar tu cuenta."
+      : "Usa este enlace para restablecer tu contraseña.";
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: user.email,
       subject: "Restablece tu contraseña de MEDICOM",
       text:
         `Hola ${user.fullName},\n\n` +
-        `Usa este enlace para restablecer tu contraseña:\n${resetUrl}\n\n` +
+        `${instruction}\n${resetUrl}\n\n` +
         `El enlace expirará en ${PASSWORD_RESET_MINUTES} minutos.`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#243447">
           <h2 style="color:#003b71">Restablecer contraseña</h2>
           <p>Hola ${user.fullName},</p>
-          <p>Recibimos una solicitud para restablecer tu contraseña en MEDICOM.</p>
+          <p>${instruction}</p>
           <p>
             <a href="${resetUrl}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#009fd9;color:#fff;text-decoration:none">
               Crear nueva contraseña
@@ -287,7 +462,7 @@ export const resetPassword = async (token, password) =>
       !lockedUser ||
       !lockedUser.resetTokenActive ||
       lockedUser.resetTokenJti !== payload.jti ||
-      lockedUser.resetTokenHash !== hashPasswordResetToken(token) ||
+      lockedUser.resetTokenHash !== hashAuthToken(token) ||
       lockedUser.resetTokenExpiresAt <= new Date()
     ) {
       throw createError("El enlace de restablecimiento no está activo.", 410);
@@ -297,6 +472,7 @@ export const resetPassword = async (token, password) =>
     await lockedUser.update(
       {
         passwordHash,
+        ...(payload.reactivate === true && { isActive: true }),
         resetTokenActive: false,
         resetTokenHash: null,
         resetTokenJti: null,

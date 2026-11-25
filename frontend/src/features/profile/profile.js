@@ -19,6 +19,7 @@
         options,
       ),
     );
+    if (response.status === 204) return;
     const data = await response.json();
     if (!response.ok)
       throw new Error(data.message || "No fue posible completar la solicitud.");
@@ -356,14 +357,61 @@
     }
   });
 
+  const dialog = document.getElementById("account-dialog");
+  const confirmButton = document.getElementById("account-confirm");
+  const cancelButton = document.getElementById("account-cancel");
+  const accountError = document.getElementById("account-error");
+  let countdown;
+
+  document
+    .getElementById("deactivate-account")
+    .addEventListener("click", () => {
+      let seconds = 5;
+      accountError.textContent = "";
+      confirmButton.disabled = true;
+      confirmButton.textContent = `Desactivar cuenta (${seconds} s)`;
+      dialog.showModal();
+      countdown = setInterval(() => {
+        seconds -= 1;
+        if (seconds > 0) {
+          confirmButton.textContent = `Desactivar cuenta (${seconds} s)`;
+        } else {
+          clearInterval(countdown);
+          confirmButton.textContent = "Desactivar cuenta";
+          confirmButton.disabled = false;
+        }
+      }, 1000);
+    });
+
+  cancelButton.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => clearInterval(countdown));
+  dialog.addEventListener("cancel", (event) => {
+    if (cancelButton.disabled) event.preventDefault();
+  });
+  confirmButton.addEventListener("click", async () => {
+    if (confirmButton.disabled) return;
+    confirmButton.disabled = true;
+    cancelButton.disabled = true;
+    try {
+      await apiRequest("/api/profile", { method: "DELETE" });
+      window.location.replace("/login.html");
+    } catch (error) {
+      accountError.textContent = error.message;
+      cancelButton.disabled = false;
+      confirmButton.disabled = false;
+    }
+  });
+
   document
     .getElementById("profile-logout")
     .addEventListener("click", async function () {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "same-origin",
-      });
-      window.location.replace("/login.html");
+      if (!window.confirm("¿Quieres cerrar sesión?")) return;
+      try {
+        await apiRequest("/api/auth/logout", { method: "POST" });
+        window.location.replace("/login.html");
+      } catch (error) {
+        message.textContent = error.message;
+      }
     });
 
   loadProfile();

@@ -54,6 +54,12 @@ services:
       - DB_USER=${DB_USER:?DB_USER is required}
       - DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD is required}
       - DB_NAME=${DB_NAME:?DB_NAME is required}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_SECURE=${SMTP_SECURE:-true}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-MEDICOM <no-reply@medicom.com>}
     depends_on:
       db:
         condition: service_healthy

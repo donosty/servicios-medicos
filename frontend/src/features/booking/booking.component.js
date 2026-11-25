@@ -38,6 +38,7 @@
         ctrl.loadingDoctors = false;
         ctrl.loadingTimes = false;
         ctrl.folio = "";
+        ctrl.emailSent = false;
         ctrl.availableDates = dateUtils.buildAvailableDates();
 
         ctrl.$onInit = function () {
@@ -223,6 +224,7 @@
             .then(function (response) {
               ctrl.confirmed = true;
               ctrl.folio = response.data.appointment.folio;
+              ctrl.emailSent = response.data.emailSent;
               ctrl.loadAvailability();
             })
             .catch(function (response) {

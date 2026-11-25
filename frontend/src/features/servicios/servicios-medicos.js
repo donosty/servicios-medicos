@@ -39,7 +39,11 @@
                 new Set(
                   ctrl.services
                     .map((service) => service.category)
-                    .filter(Boolean),
+                    .filter(
+                      (category) =>
+                        category &&
+                        !/^urgencias(?:\s|$)/i.test(category.trim()),
+                    ),
                 ),
               );
               const specialties = new Map();

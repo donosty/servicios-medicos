@@ -101,6 +101,7 @@
       };
 
       home.logout = function (event) {
+        if (!$window.confirm("¿Quieres cerrar sesión?")) return;
         const trigger = event.currentTarget;
         api
           .logout()

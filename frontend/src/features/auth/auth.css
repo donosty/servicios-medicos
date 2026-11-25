@@ -111,6 +111,30 @@
   color: var(--navy);
 }
 
+.reactivation-links {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.reactivation-links button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+
+.reactivation-links :is(a, button) {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+button.auth-secondary {
+  border: 1px solid rgba(0, 59, 113, 0.18);
+  background: white;
+  cursor: pointer;
+}
+
 .auth-message {
   min-height: 24px;
   margin: 14px 0 0;

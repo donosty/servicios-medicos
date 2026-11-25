@@ -185,6 +185,13 @@
         <div class="booking-success" ng-if="$ctrl.confirmed" role="status">
           <strong>Cita agendada</strong>
           <span>Folio: {{$ctrl.folio}}</span>
+          <span ng-if="$ctrl.emailSent"
+            >Enviamos los detalles de tu cita a tu correo electrónico.</span
+          >
+          <span ng-if="!$ctrl.emailSent"
+            >La cita quedó registrada, pero no fue posible enviar el correo de
+            confirmación.</span
+          >
         </div>
         <p class="booking-error" ng-if="$ctrl.errorMessage" role="alert">
           {{$ctrl.errorMessage}}

@@ -14,7 +14,10 @@
       <section class="auth-card" aria-labelledby="registro-titulo">
         <img class="auth-brand" src="/assets/medicom.webp" alt="MEDICOM" />
         <h1 id="registro-titulo">Crear cuenta</h1>
-        <p class="auth-intro">Regístrate para agendar y gestionar tus citas.</p>
+        <p class="auth-intro">
+          Regístrate para agendar y gestionar tus citas. Confirma tu correo para
+          activar tu cuenta.
+        </p>
         <form id="register-form">
           <div class="auth-field">
             <label for="nombre">Nombre completo</label>
@@ -66,6 +69,40 @@
           <button class="auth-submit" type="submit">Crear cuenta</button>
           <p id="register-message" class="auth-message" role="alert"></p>
         </form>
+        <section id="reactivation" hidden aria-labelledby="reactivation-title">
+          <h2 id="reactivation-title" tabindex="-1">
+            ¿Deseas reactivar tu cuenta?
+          </h2>
+          <p>
+            Ya tuviste una cuenta con <strong id="previous-email"></strong>. Al
+            reactivarla recuperarás el acceso a tus citas.
+          </p>
+          <form id="reactivation-form">
+            <div class="auth-field">
+              <label for="previous-password"
+                >Contraseña de tu cuenta anterior</label
+              >
+              <input
+                id="previous-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                maxlength="72"
+                required
+              />
+            </div>
+            <button class="auth-submit" type="submit">
+              Sí, reactivar mi cuenta
+            </button>
+          </form>
+          <div class="auth-links reactivation-links">
+            <a href="/forgot-password.html?reactivar=1">Olvidé mi contraseña</a>
+            <button type="button" id="decline-reactivation">
+              Usar otro correo
+            </button>
+          </div>
+          <p id="reactivation-message" class="auth-message" role="alert"></p>
+        </section>
         <div class="auth-links">
           <a id="login-link" href="/login.html">Ya tengo una cuenta</a>
         </div>

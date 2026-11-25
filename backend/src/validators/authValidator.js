@@ -13,10 +13,15 @@ export const loginSchema = z.object({
 });
 
 export const passwordResetRequestSchema = z.object({
+  reactivate: z.boolean().optional(),
   email: z.string().trim().email().max(254),
 });
 
 export const passwordResetTokenSchema = z.object({
+  token: z.string().trim().min(20).max(4096),
+});
+
+export const emailConfirmationTokenSchema = z.object({
   token: z.string().trim().min(20).max(4096),
 });
 

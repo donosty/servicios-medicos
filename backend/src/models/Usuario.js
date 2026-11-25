@@ -35,6 +35,30 @@ const Usuario = sequelize.define(
       defaultValue: true,
       field: "esta_activo",
     },
+    emailConfirmed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "correo_confirmado",
+    },
+    emailConfirmationTokenActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "confirmacion_correo_token_activo",
+    },
+    emailConfirmationTokenHash: {
+      type: DataTypes.TEXT,
+      field: "confirmacion_correo_token_hash",
+    },
+    emailConfirmationJti: {
+      type: DataTypes.TEXT,
+      field: "confirmacion_correo_jti",
+    },
+    emailConfirmationExpiresAt: {
+      type: DataTypes.DATE,
+      field: "confirmacion_correo_expira_en",
+    },
     resetTokenActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,

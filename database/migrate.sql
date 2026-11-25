@@ -10,3 +10,4 @@
 \ir migrations/reprogramacion-citas.sql
 \ir migrations/normalizar-identificadores-medicos.sql
 \ir migrations/restablecimiento-password.sql
+\ir migrations/confirmacion-correo.sql
