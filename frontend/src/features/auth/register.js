@@ -3,6 +3,7 @@
 
   const form = document.getElementById("register-form");
   const message = document.getElementById("register-message");
+  const confirmationEmailKey = "medicom.emailConfirmationEmail";
   const resumeBooking =
     new URLSearchParams(window.location.search).get("cita") === "continuar";
   const loginPath = resumeBooking
@@ -97,7 +98,18 @@
         message.textContent = data.message || "No fue posible crear la cuenta.";
         return;
       }
-      window.location.replace(loginPath);
+      let emailStored = true;
+      try {
+        window.localStorage.removeItem(confirmationEmailKey);
+        window.localStorage.setItem(confirmationEmailKey, data.user.email);
+      } catch {
+        emailStored = false;
+      }
+      const confirmationParams = new URLSearchParams({
+        emailSent: String(data.verificationEmailSent),
+        emailStored: String(emailStored),
+      });
+      window.location.replace(`/confirm-email.html?${confirmationParams}`);
     } catch (_error) {
       message.textContent = "No fue posible conectar con el servidor.";
     } finally {

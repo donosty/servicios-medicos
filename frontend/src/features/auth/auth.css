@@ -111,6 +111,7 @@
   color: var(--navy);
 }
 
+<<<<<<< HEAD
 .reactivation-links {
   align-items: baseline;
   flex-wrap: wrap;
@@ -127,6 +128,12 @@
 .reactivation-links :is(a, button) {
   color: var(--navy);
   text-decoration: underline;
+=======
+button.auth-secondary {
+  border: 1px solid rgba(0, 59, 113, 0.18);
+  background: white;
+  cursor: pointer;
+>>>>>>> beeaa7f (Confirmar cuenta y folio)
 }
 
 .auth-message {

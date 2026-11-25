@@ -99,6 +99,38 @@ test("login ofrece restablecimiento y las vistas cuentan con formularios seguros
   assert.match(resetScript, /password-reset\/cancel/);
 });
 
+test("el registro dirige a la confirmación y permite confirmar o reenviar el correo", async () => {
+  const registerScript = await readFile(
+    new URL("features/auth/register.js", sourcePath),
+    "utf8",
+  );
+  assert.match(registerScript, /localStorage\.setItem/);
+  assert.match(registerScript, /confirm-email\.html\?/);
+
+  const confirmationPage = await readFile(
+    new URL("confirm-email.html", sourcePath),
+    "utf8",
+  );
+  assert.match(confirmationPage, /name="referrer" content="no-referrer"/);
+  assert.match(confirmationPage, /id="confirm-email-form"/);
+  assert.match(confirmationPage, /id="resend-confirmation-form" hidden/);
+  assert.match(confirmationPage, /id="confirmation-email"/);
+  assert.doesNotMatch(confirmationPage, /type="email"/);
+  assert.match(confirmationPage, /id="confirm-email-links" class="auth-links" hidden/);
+
+  const confirmationScript = await readFile(
+    new URL("features/auth/confirm-email.js", sourcePath),
+    "utf8",
+  );
+  assert.match(confirmationScript, /email-confirmation\/confirm/);
+  assert.match(confirmationScript, /email-confirmation\/resend/);
+  assert.match(confirmationScript, /resendForm\.hidden = true/);
+  assert.match(confirmationScript, /loginLinks\.hidden = false/);
+  assert.match(confirmationScript, /localStorage\.getItem/);
+  assert.match(confirmationScript, /localStorage\.removeItem/);
+  assert.match(confirmationScript, /replaceState/);
+});
+
 test("los estilos globales y del perfil comparten la paleta MEDICOM", async () => {
   const globalStyles = await readFile(
     new URL("styles.css", sourcePath),

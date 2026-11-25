@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Confirmar correo | MEDICOM</title>
+    <link rel="icon" href="/assets/medicom-icon.webp" type="image/webp" />
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/features/auth/auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-card" aria-labelledby="confirm-email-title">
+        <img class="auth-brand" src="/assets/medicom.webp" alt="MEDICOM" />
+        <h1 id="confirm-email-title">Confirma tu correo</h1>
+        <p id="confirm-email-message" class="auth-message" role="status"></p>
+        <p id="confirmation-email" class="auth-intro" hidden></p>
+        <form id="confirm-email-form" hidden>
+          <button class="auth-submit" type="submit">Confirmar correo</button>
+        </form>
+        <form id="resend-confirmation-form" hidden>
+          <button class="auth-secondary" type="submit">
+            Reenviar enlace
+          </button>
+        </form>
+        <div id="confirm-email-links" class="auth-links" hidden>
+          <a href="/login.html">Volver al inicio de sesión</a>
+        </div>
+      </section>
+    </main>
+    <script src="/features/auth/confirm-email.js"></script>
+  </body>
+</html>
