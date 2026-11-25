@@ -2,6 +2,19 @@
 set -eu
 
 cd /opt/servicios-medicos
+
+# Verificar que el disco persistente está montado.
+if ! mountpoint -q /srv/medicom-data; then
+  echo "ERROR: El disco medicom-data no está montado." >&2
+  exit 1
+fi
+
+# Verificar el directorio de PostgreSQL.
+if [ ! -d /srv/medicom-data/postgres ]; then
+  echo "ERROR: No existe el directorio de datos de PostgreSQL." >&2
+  exit 1
+fi
+
 mv /tmp/docker-compose.prod.yml ./docker-compose.prod.yml
 mv /tmp/.env.production ./.env.production
 mv /tmp/Caddyfile ./Caddyfile
