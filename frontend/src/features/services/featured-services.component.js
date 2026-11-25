@@ -13,7 +13,11 @@
           api
             .getMedicalServices()
             .then(function (response) {
-              ctrl.services = (response.data.services || []).slice(0, 4);
+              const services = response.data.services || [];
+              const featured = ["urgencias", "imagenologia", "laboratorio", "medicina-general"];
+              ctrl.services = featured
+                .map((id) => services.find((service) => service.id === id))
+                .filter(Boolean);
             })
             .catch(function () {
               ctrl.services = [];

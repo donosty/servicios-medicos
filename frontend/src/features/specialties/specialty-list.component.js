@@ -20,12 +20,18 @@
         ctrl.canMoveRight = false;
         ctrl.currentPage = 0;
 
-        ctrl.specialties = medicalSpecialties;
+        const homeSpecialties = new Set([
+          "neurologia", "traumatologia", "ortopedia", "cardiologia",
+          "pediatria", "nutricion", "cirugia-maxilofacial", "cirugia-plastica",
+          "psiquiatria", "medicina-general", "imagenologia",
+        ]);
+        ctrl.specialties = [];
         $scope.$watchCollection(
           function () {
             return medicalSpecialties;
           },
-          function () {
+          function (specialties) {
+            ctrl.specialties = specialties.filter((item) => homeSpecialties.has(item.id));
             $timeout(ctrl.updateCarouselState);
           },
         );
