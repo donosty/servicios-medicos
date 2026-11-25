@@ -1,5 +1,6 @@
 import { appointmentSchema } from "../validators/appointmentValidator.js";
 import { createAppointment } from "../services/appointmentService.js";
+import { sendAppointmentConfirmation } from "../services/appointmentEmailService.js";
 
 export const createAppointmentController = async (request, response, next) => {
   try {
@@ -12,7 +13,23 @@ export const createAppointmentController = async (request, response, next) => {
     }
 
     const appointment = await createAppointment(parsed.data, request.usuario);
-    return response.status(201).json({ appointment });
+    let emailSent = true;
+    try {
+      await sendAppointmentConfirmation(appointment);
+    } catch (error) {
+      emailSent = false;
+      console.error(
+        "No fue posible enviar la confirmación de cita:",
+        error.message,
+      );
+    }
+
+    const {
+      patientName: _patientName,
+      patientEmail: _patientEmail,
+      ...details
+    } = appointment;
+    return response.status(201).json({ appointment: details, emailSent });
   } catch (error) {
     return next(error);
   }
