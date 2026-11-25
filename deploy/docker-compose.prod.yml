@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /srv/medicom-data/postgres:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
@@ -101,7 +101,6 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
 
 volumes:
-  postgres_data:
   caddy_data:
   caddy_config:
 
