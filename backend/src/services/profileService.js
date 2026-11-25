@@ -1,6 +1,7 @@
 import {
   sequelize,
   Usuario,
+  SesionUsuario,
   Patient,
   Appointment,
   Doctor,
@@ -59,6 +60,21 @@ export const getProfile = async (userId) => {
     email: user.email,
   };
 };
+
+export const deactivateProfile = async (userId) =>
+  sequelize.transaction(async (transaction) => {
+    await Usuario.update(
+      {
+        isActive: false,
+        resetTokenActive: false,
+        resetTokenHash: null,
+        resetTokenJti: null,
+        resetTokenExpiresAt: null,
+      },
+      { where: { userId }, transaction },
+    );
+    await SesionUsuario.destroy({ where: { userId }, transaction });
+  });
 
 export const updateProfile = async (userId, data) =>
   sequelize.transaction(async (transaction) => {

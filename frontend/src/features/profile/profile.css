@@ -354,3 +354,12 @@ body.profile-page .profile-header-inner {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+#account-dialog {
+  width: min(30rem, calc(100% - 2rem));
+  margin: auto;
+}
+
+#account-dialog::backdrop {
+  background: rgb(15 35 53 / 55%);
+}

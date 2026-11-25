@@ -1,11 +1,24 @@
 import { profileSchema } from "../validators/profileValidator.js";
 import {
   getProfile,
+  deactivateProfile,
   updateProfile,
   getUserAppointments,
   rescheduleUserAppointment,
 } from "../services/profileService.js";
 import { rescheduleSchema } from "../validators/profileValidator.js";
+
+import { clearSessionCookie } from "../middlewares/authMiddleware.js";
+
+export const deactivateProfileController = async (request, response, next) => {
+  try {
+    await deactivateProfile(request.usuario.userId);
+    clearSessionCookie(response);
+    return response.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
 
 export const getProfileController = async (request, response, next) => {
   try {

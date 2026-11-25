@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   register,
+  reactivate,
   login,
   session,
   logout,
@@ -13,6 +14,7 @@ import {
 const router = Router();
 
 router.post("/api/auth/register", register);
+router.post("/api/auth/reactivate", reactivate);
 router.post("/api/auth/login", login);
 router.get("/api/auth/session", session);
 router.post("/api/auth/logout", logout);

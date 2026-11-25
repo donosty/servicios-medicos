@@ -29,6 +29,13 @@
         </div>
         <h1 id="profile-name">Mi perfil</h1>
         <p id="profile-email">correo@ejemplo.com</p>
+        <button
+          type="button"
+          class="btn btn-outline-danger mt-3"
+          id="deactivate-account"
+        >
+          Dar de baja mi cuenta
+        </button>
       </aside>
 
       <div class="profile-content">
@@ -124,6 +131,35 @@
         </section>
       </div>
     </main>
+    <dialog
+      id="account-dialog"
+      class="profile-card"
+      aria-labelledby="account-title"
+      aria-describedby="account-description"
+    >
+      <h2 id="account-title">¿Quieres dar de baja tu cuenta?</h2>
+      <p id="account-description">
+        Se desactivará tu acceso y se cerrarán todas tus sesiones. Tus citas
+        seguirán agendadas y se conservarán tus datos y tu historial.
+      </p>
+      <p id="account-error" role="alert"></p>
+      <button
+        id="account-cancel"
+        type="button"
+        class="btn btn-outline-secondary"
+        autofocus
+      >
+        Cancelar
+      </button>
+      <button
+        id="account-confirm"
+        type="button"
+        class="btn btn-danger"
+        disabled
+      >
+        Desactivar cuenta
+      </button>
+    </dialog>
     <script src="/features/profile/profile.js"></script>
   </body>
 </html>

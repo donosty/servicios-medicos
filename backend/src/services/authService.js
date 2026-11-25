@@ -57,7 +57,7 @@ const verifyPasswordResetToken = async (token) => {
   const user = await Usuario.findByPk(payload.sub);
   if (
     !user ||
-    !user.isActive ||
+    (!user.isActive && payload.reactivate !== true) ||
     !user.resetTokenActive ||
     user.resetTokenJti !== payload.jti ||
     user.resetTokenHash !== hashPasswordResetToken(token) ||
@@ -85,6 +85,14 @@ export const registerUser = async (data) =>
 
     const email = data.email.toLowerCase();
     const existing = await Usuario.findOne({ where: { email }, transaction });
+    if (existing && !existing.isActive && existing.roleId === role.roleId) {
+      const error = createError(
+        "Ya tuviste una cuenta con este correo. ¿Deseas reactivarla?",
+        409,
+      );
+      error.code = "ACCOUNT_INACTIVE";
+      throw error;
+    }
     if (existing)
       throw createError("Ya existe una cuenta con este correo.", 409);
 
@@ -116,6 +124,28 @@ export const registerUser = async (data) =>
       fullName: user.fullName,
       email: user.email,
     };
+  });
+
+export const reactivateUser = async (email, password) =>
+  sequelize.transaction(async (transaction) => {
+    const user = await Usuario.findOne({
+      where: { email: email.toLowerCase(), isActive: false },
+      include: [
+        { model: RolUsuario, as: "rol", where: { code: "consumidor" } },
+      ],
+      transaction,
+      lock: { level: transaction.LOCK.UPDATE, of: Usuario },
+    });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+      throw createError(
+        "Ingresa la contraseña de tu cuenta anterior o recupérala por correo.",
+        401,
+      );
+    }
+    await user.update(
+      { isActive: true, resetTokenActive: false },
+      { transaction },
+    );
   });
 
 export const loginUser = async (email, password) => {
@@ -182,17 +212,22 @@ export const logoutSession = async (token) => {
   });
 };
 
-export const requestPasswordReset = async (email) => {
+export const requestPasswordReset = async (email, reactivate = false) => {
   const normalizedEmail = email.trim().toLowerCase();
   const user = await Usuario.findOne({
-    where: { email: normalizedEmail, isActive: true },
+    where: { email: normalizedEmail, isActive: !reactivate },
+    ...(reactivate && {
+      include: [
+        { model: RolUsuario, as: "rol", where: { code: "consumidor" } },
+      ],
+    }),
   });
   if (!user) return;
 
   const jti = randomUUID();
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000);
   const token = jwt.sign(
-    { type: "password_reset", sub: user.userId, jti },
+    { type: "password_reset", sub: user.userId, jti, reactivate },
     getPasswordResetSecret(),
     { expiresIn: `${PASSWORD_RESET_MINUTES}m` },
   );
@@ -219,19 +254,22 @@ export const requestPasswordReset = async (email) => {
     const resetUrl = `${publicUrl}/reset-password.html?token=${encodeURIComponent(token)}`;
     const transporter = createPasswordResetTransport();
 
+    const instruction = reactivate
+      ? "Usa este enlace para crear una nueva contraseña y reactivar tu cuenta."
+      : "Usa este enlace para restablecer tu contraseña.";
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: user.email,
       subject: "Restablece tu contraseña de MEDICOM",
       text:
         `Hola ${user.fullName},\n\n` +
-        `Usa este enlace para restablecer tu contraseña:\n${resetUrl}\n\n` +
+        `${instruction}\n${resetUrl}\n\n` +
         `El enlace expirará en ${PASSWORD_RESET_MINUTES} minutos.`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#243447">
           <h2 style="color:#003b71">Restablecer contraseña</h2>
           <p>Hola ${user.fullName},</p>
-          <p>Recibimos una solicitud para restablecer tu contraseña en MEDICOM.</p>
+          <p>${instruction}</p>
           <p>
             <a href="${resetUrl}" style="display:inline-block;padding:12px 18px;border-radius:999px;background:#009fd9;color:#fff;text-decoration:none">
               Crear nueva contraseña
@@ -297,6 +335,7 @@ export const resetPassword = async (token, password) =>
     await lockedUser.update(
       {
         passwordHash,
+        ...(payload.reactivate === true && { isActive: true }),
         resetTokenActive: false,
         resetTokenHash: null,
         resetTokenJti: null,

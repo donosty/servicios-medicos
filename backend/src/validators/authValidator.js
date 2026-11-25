@@ -13,6 +13,7 @@ export const loginSchema = z.object({
 });
 
 export const passwordResetRequestSchema = z.object({
+  reactivate: z.boolean().optional(),
   email: z.string().trim().email().max(254),
 });
 

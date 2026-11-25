@@ -7,6 +7,7 @@ import {
 } from "../validators/authValidator.js";
 import {
   registerUser,
+  reactivateUser,
   loginUser,
   getSessionUser,
   logoutSession,
@@ -34,6 +35,25 @@ export const register = async (request, response, next) => {
 
     const user = await registerUser(parsed.data);
     return response.status(201).json({ user });
+  } catch (error) {
+    if (error.code === "ACCOUNT_INACTIVE") {
+      return response
+        .status(409)
+        .json({ code: error.code, message: error.message });
+    }
+    return next(error);
+  }
+};
+
+export const reactivate = async (request, response, next) => {
+  try {
+    const parsed = loginSchema.safeParse(request.body);
+    if (!parsed.success)
+      return response
+        .status(400)
+        .json({ message: "Revisa el correo y la contraseña." });
+    await reactivateUser(parsed.data.email, parsed.data.password);
+    return response.sendStatus(204);
   } catch (error) {
     return next(error);
   }
@@ -84,7 +104,7 @@ export const requestPasswordResetController = async (
   try {
     const parsed = passwordResetRequestSchema.safeParse(request.body);
     if (parsed.success) {
-      await requestPasswordReset(parsed.data.email);
+      await requestPasswordReset(parsed.data.email, parsed.data.reactivate);
     }
   } catch (error) {
     console.error(
