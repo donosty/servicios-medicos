@@ -315,11 +315,7 @@ VALUES
     ('cirugia-maxilofacial', 'Cirugía Maxilofacial', 'Atención quirúrgica de boca, cara, mandíbula y estructuras relacionadas.', '/assets/icons/cirugia-maxilofacial.webp', 7),
     ('cirugia-plastica', 'Cirugía Plástica', 'Procedimientos reconstructivos y estéticos con atención especializada.', '/assets/icons/cirugia-plastica.webp', 8),
     ('psiquiatria', 'Psiquiatría', 'Evaluación y tratamiento especializado de la salud mental.', '/assets/icons/psiquiatria.webp', 9)
-ON CONFLICT (clave) DO UPDATE
-SET nombre = EXCLUDED.nombre,
-    descripcion = EXCLUDED.descripcion,
-    ruta_icono = EXCLUDED.ruta_icono,
-    orden_visualizacion = EXCLUDED.orden_visualizacion;
+ON CONFLICT (clave) DO NOTHING;
 
 INSERT INTO medicos (id_medico, titulo_profesional, nombre, apellidos, descripcion, ruta_imagen)
 VALUES
@@ -332,12 +328,7 @@ VALUES
     ('6f8c6f65-b610-4d41-b6be-ce8e5f8fa054', 'Dr.', 'Alejandro', 'Ibarra', 'Especialista en cirugía oral y cirugía maxilofacial.', '/assets/photo 4.jpg'),
     ('7f9d7f76-c721-4e52-b7cf-df9f6f9fb165', 'Dra.', 'Valeria', 'Santos', 'Especialista en cirugía reconstructiva y plástica.', '/assets/photo 5.jpg'),
     ('8fac8077-d832-4f63-b8df-ffaf718fc276', 'Dr.', 'Andrés', 'Herrera', 'Psiquiatra enfocado en atención integral de la salud mental.', '/assets/photo 2.jpg')
-ON CONFLICT (id_medico) DO UPDATE
-SET titulo_profesional = EXCLUDED.titulo_profesional,
-    nombre = EXCLUDED.nombre,
-    apellidos = EXCLUDED.apellidos,
-    descripcion = EXCLUDED.descripcion,
-    ruta_imagen = EXCLUDED.ruta_imagen;
+ON CONFLICT (id_medico) DO NOTHING;
 
 INSERT INTO especialidades_medicos (id_medico, id_especialidad)
 SELECT asignacion.id_medico, especialidad.id_especialidad
@@ -355,6 +346,10 @@ FROM (
 ) AS asignacion (id_medico, clave_especialidad)
 JOIN especialidades_medicas especialidad
     ON especialidad.clave = asignacion.clave_especialidad
+WHERE NOT EXISTS (
+    SELECT 1 FROM especialidades_medicos AS existente
+    WHERE existente.id_medico = asignacion.id_medico
+)
 ON CONFLICT (id_medico, id_especialidad) DO NOTHING;
 
 INSERT INTO estados_citas (codigo_estado, nombre)

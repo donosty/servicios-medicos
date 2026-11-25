@@ -20,15 +20,7 @@ const formatDate = (date) => {
   }).format(new Date(Date.UTC(year, month - 1, day)));
 };
 
-export const sendAppointmentConfirmation = async ({
-  patientEmail,
-  patientName,
-  folio,
-  specialty,
-  doctor,
-  date,
-  time,
-}) => {
+async function sendAppointmentMail(patientEmail, subject, text, html) {
   if (
     !process.env.SMTP_HOST ||
     !process.env.SMTP_USER ||
@@ -47,6 +39,24 @@ export const sendAppointmentConfirmation = async ({
     },
   });
 
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: patientEmail,
+    subject,
+    text,
+    html,
+  });
+}
+
+export const sendAppointmentConfirmation = async ({
+  patientEmail,
+  patientName,
+  folio,
+  specialty,
+  doctor,
+  date,
+  time,
+}) => {
   const formattedDate = formatDate(date);
   const subject = `Confirmación de cita MEDICOM - ${folio}`;
   const text =
@@ -73,11 +83,16 @@ export const sendAppointmentConfirmation = async ({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: patientEmail,
-    subject,
-    text,
-    html,
-  });
+  await sendAppointmentMail(patientEmail, subject, text, html);
 };
+
+export async function sendAppointmentReschedule({ patientEmail, patientName, folio, date, time, previousDate, previousTime }) {
+  const before = `${formatDate(previousDate)} a las ${previousTime}`;
+  const after = `${formatDate(date)} a las ${time}`;
+  const subject = `Cambio de cita MEDICOM - ${folio}`;
+  const text = `Hola ${patientName}, tu cita con folio ${folio} fue reprogramada.\nHorario anterior: ${before}\nNuevo horario: ${after}`;
+  const html = `<h2>Tu cita fue reprogramada</h2><p>Hola ${escapeHtml(patientName)},</p>
+    <p>Folio: ${escapeHtml(folio)}</p><p>Horario anterior: ${escapeHtml(before)}</p>
+    <p><strong>Nuevo horario: ${escapeHtml(after)}</strong></p>`;
+  await sendAppointmentMail(patientEmail, subject, text, html);
+}

@@ -44,6 +44,8 @@
           >
             Citas
           </button>
+          <button type="button" class="admin-nav-button" data-section="doctors">Médicos</button>
+          <button type="button" class="admin-nav-button" data-section="specialties">Especialidades</button>
         </nav>
       </aside>
       <section class="admin-content">
@@ -72,6 +74,49 @@
               catálogo y la agenda pública.
             </p>
           </article>
+        </section>
+
+        <section class="admin-section" data-admin-section="doctors" hidden>
+          <div class="admin-toolbar"><h2>Médicos</h2>
+            <button class="admin-primary" type="button" id="new-doctors">Nuevo médico</button>
+          </div>
+          <form class="admin-form" id="form-doctors" hidden>
+            <div class="admin-form-grid">
+                <label>Título profesional<input name="professionalTitle" placeholder="Dr., Dra., Lic." required /></label>
+                <label>Nombre<input name="firstName" required /></label>
+                <label>Apellidos<input name="lastName" required /></label>
+                <label>Fotografía (ruta o URL)<input name="imagePath" /></label>
+                <label>Especialidades<select name="specialtyIds" multiple required></select></label>
+                <label>Descripción<textarea name="description" required></textarea></label>
+                <label class="admin-check"><input name="isActive" type="checkbox" checked /> Activo</label>
+            </div>
+            <div class="admin-form-actions">
+              <button type="submit" class="admin-primary">Guardar</button>
+              <button type="button" name="cancel" class="admin-secondary">Cancelar</button>
+            </div>
+          </form>
+          <div id="list-doctors" class="admin-table-wrap"></div>
+        </section>
+
+        <section class="admin-section" data-admin-section="specialties" hidden>
+          <div class="admin-toolbar"><h2>Especialidades</h2>
+            <button class="admin-primary" type="button" id="new-specialties">Nueva especialidad</button>
+          </div>
+          <form class="admin-form" id="form-specialties" hidden>
+            <div class="admin-form-grid">
+                <label>Nombre<input name="name" required /></label>
+                <label>Clave<input name="slug" placeholder="Automática" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" /></label>
+                <label>Ícono (ruta o URL)<input name="iconPath" /></label>
+                <label>Orden<input name="displayOrder" type="number" min="0" max="32767" value="0" required /></label>
+                <label>Descripción<textarea name="description" required></textarea></label>
+                <label class="admin-check"><input name="isActive" type="checkbox" checked /> Activo</label>
+            </div>
+            <div class="admin-form-actions">
+              <button type="submit" class="admin-primary">Guardar</button>
+              <button type="button" name="cancel" class="admin-secondary">Cancelar</button>
+            </div>
+          </form>
+          <div id="list-specialties" class="admin-table-wrap"></div>
         </section>
 
         <section
@@ -139,6 +184,9 @@
                   maxlength="1000"
                 ></textarea>
               </label>
+              <label>Especialidad
+                <select id="admin-service-specialty" required></select>
+              </label>
               <label class="admin-check"
                 ><input id="admin-service-active" type="checkbox" checked />
                 Servicio activo</label
@@ -173,14 +221,12 @@
             </div>
           </div>
           <form id="admin-slot-form" class="admin-form">
-            <input type="hidden" id="admin-slot-id" />
             <div class="admin-form-grid">
               <label
                 >Médico<select id="admin-slot-doctor" required></select
               ></label>
               <label
                 >Día<select id="admin-slot-day" required>
-                  <option value="0">Domingo</option>
                   <option value="1">Lunes</option>
                   <option value="2">Martes</option>
                   <option value="3">Miércoles</option>
@@ -190,7 +236,7 @@
                 </select></label
               >
               <label
-                >Hora<input id="admin-slot-time" type="time" required
+                >Hora<input id="admin-slot-time" type="time" min="08:00" max="20:00" required
               /></label>
               <label
                 >Duración (minutos)<input
@@ -207,7 +253,7 @@
               >
             </div>
             <div class="admin-form-actions">
-              <button type="submit" class="admin-primary">
+              <button type="submit" id="admin-save-slot" class="admin-primary">
                 Guardar horario
               </button>
               <button

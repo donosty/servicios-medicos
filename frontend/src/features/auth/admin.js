@@ -10,6 +10,11 @@
       .replaceAll("'", "&#039;");
 
   let adminData = null;
+  let editingSlotId = null;
+  const slotForm = document.getElementById("admin-slot-form");
+  const saveSlot = document.getElementById("admin-save-slot");
+  const cancelSlot = document.getElementById("admin-cancel-slot");
+  const slotDoctor = document.getElementById("admin-slot-doctor");
   const dayNames = [
     "Domingo",
     "Lunes",
@@ -62,6 +67,8 @@
     const titles = {
       overview: "Resumen",
       services: "Servicios y precios",
+      doctors: "Médicos",
+      specialties: "Especialidades",
       availability: "Disponibilidad",
       appointments: "Citas",
     };
@@ -115,7 +122,8 @@
   }
 
   function renderDoctorOptions() {
-    document.getElementById("admin-slot-doctor").innerHTML =
+    const selectedDoctor = slotDoctor.value;
+    slotDoctor.innerHTML =
       '<option value="">Selecciona un médico</option>' +
       adminData.doctors
         .map(
@@ -124,6 +132,8 @@
       `,
         )
         .join("");
+    if (adminData.doctors.some((doctor) => String(doctor.id) === selectedDoctor))
+      slotDoctor.value = selectedDoctor;
   }
 
   function renderSlots() {
@@ -221,7 +231,77 @@
     `;
   }
 
+  const directoryKinds = ["doctors", "specialties"];
+  function renderDirectory(kind) {
+    const doctors = kind === "doctors";
+    const rows = adminData[kind].map((item) => {
+      const detail = doctors ? adminData.specialties.filter((sp) => item.specialties.includes(sp.slug)).map((sp) => sp.name).join(", ") : item.description;
+      return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(detail)}</td>
+        <td>${item.isActive ? "Activo" : "Inactivo"}</td>
+        <td><button type="button" class="admin-edit" data-edit="${escapeHtml(item.id)}">Modificar</button></td></tr>`;
+    });
+    document.getElementById("list-" + kind).innerHTML = `<table class="admin-table"><thead><tr><th>Nombre</th>
+      <th>${doctors ? "Especialidades" : "Descripción"}</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>${rows.join("")}</tbody></table>`;
+  }
+
+  for (const kind of directoryKinds) {
+    const form = document.getElementById("form-" + kind);
+    const fields = form.elements;
+    function open(record) {
+      if (!adminData) return;
+      form.reset();
+      form.dataset.id = record?.id ?? "";
+      if (kind === "doctors") {
+        const select = fields.specialtyIds;
+        select.replaceChildren();
+        for (const item of adminData.specialties) {
+          const selected = record?.specialties.includes(item.slug);
+          if (item.isActive || selected) select.add(new Option(item.name, item.id, false, selected));
+        }
+      } else fields.slug.readOnly = Boolean(record);
+      if (record) {
+        for (const input of fields) {
+          if (input.name === "isActive") input.checked = record.isActive;
+          else if (Object.hasOwn(record, input.name)) input.value = record[input.name] ?? "";
+        }
+      }
+      form.querySelector("[type=submit]").textContent = record ? "Actualizar" : "Guardar";
+      form.hidden = false;
+    }
+    document.getElementById("new-" + kind).addEventListener("click", () => open());
+    document.getElementById("list-" + kind).addEventListener("click", (event) => {
+      const button = event.target.closest("[data-edit]");
+      if (button) open(adminData[kind].find((item) => String(item.id) === button.dataset.edit));
+    });
+    fields.cancel.addEventListener("click", () => { form.hidden = true; });
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector("[type=submit]");
+      if (submit.disabled) return;
+      const payload = Object.fromEntries(new FormData(form));
+      payload.isActive = fields.isActive.checked;
+      if (kind === "doctors") payload.specialtyIds = Array.from(fields.specialtyIds.selectedOptions, (option) => Number(option.value));
+      else payload.displayOrder = Number(fields.displayOrder.value);
+      const id = form.dataset.id;
+      submit.disabled = true;
+      try {
+        adminData = await apiRequest("/api/admin/" + kind + (id ? "/" + id : ""), {
+          method: id ? "PATCH" : "POST", body: JSON.stringify(payload),
+        });
+        form.hidden = true;
+        renderAll();
+        setMessage(id ? "Registro actualizado." : "Registro guardado.", false);
+      } catch (error) {
+        setMessage(error.message, true);
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  }
+
   function renderAll() {
+    directoryKinds.forEach(renderDirectory);
     renderStats();
     renderServices();
     renderDoctorOptions();
@@ -256,6 +336,14 @@
       service?.catalogDescription ?? service?.description ?? "";
     document.getElementById("admin-service-active").checked =
       service?.isActive ?? true;
+    const specialty = document.getElementById("admin-service-specialty");
+    specialty.required = !service;
+    const assigned = service?.specialties ?? [];
+    const names = adminData.specialties.filter((item) => assigned.includes(item.slug)).map((item) => item.name);
+    specialty.replaceChildren(new Option(names.length ? "Conservar: " + names.join(", ") : "Selecciona una especialidad", ""));
+    for (const item of adminData.specialties.filter((item) => item.isActive)) {
+      specialty.add(new Option(item.name, item.id, false, assigned.length === 1 && assigned[0] === item.slug));
+    }
     const order = document.getElementById("admin-service-order");
     order.innerHTML = Array.from(
       { length: 21 },
@@ -270,7 +358,7 @@
 
   document
     .getElementById("admin-new-service")
-    .addEventListener("click", () => openServiceForm());
+    .addEventListener("click", () => { if (adminData) openServiceForm(); });
   document
     .getElementById("admin-cancel-service")
     .addEventListener("click", () => {
@@ -307,8 +395,10 @@
           document.getElementById("admin-service-order").value,
         ),
         isActive: document.getElementById("admin-service-active").checked,
-        features: [],
+
       };
+      const specialtyId = document.getElementById("admin-service-specialty").value;
+      if (specialtyId) payload.specialtyIds = [Number(specialtyId)];
       const slug = document.getElementById("admin-service-slug").value.trim();
       if (slug) payload.slug = slug;
 
@@ -344,62 +434,79 @@
       if (service) openServiceForm(service);
     });
 
-  document
-    .getElementById("admin-slot-form")
-    .addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const slotId = document.getElementById("admin-slot-id").value;
-      const payload = {
-        doctorId: document.getElementById("admin-slot-doctor").value,
-        dayOfWeek: Number(document.getElementById("admin-slot-day").value),
-        startTime: document.getElementById("admin-slot-time").value,
-        durationMinutes: Number(
-          document.getElementById("admin-slot-duration").value,
-        ),
-        isActive: document.getElementById("admin-slot-active").checked,
-      };
-      if (!payload.doctorId) {
-        setMessage("Selecciona un médico.", true);
-        return;
-      }
+  slotForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (saveSlot.disabled) return;
+    const slotId = editingSlotId;
+    const payload = {
+      doctorId: document.getElementById("admin-slot-doctor").value,
+      dayOfWeek: Number(document.getElementById("admin-slot-day").value),
+      startTime: document.getElementById("admin-slot-time").value,
+      durationMinutes: Number(
+        document.getElementById("admin-slot-duration").value,
+      ),
+      isActive: document.getElementById("admin-slot-active").checked,
+    };
+    if (!payload.doctorId) {
+      setMessage("Selecciona un médico.", true);
+      return;
+    }
+    const [hours, minutes] = payload.startTime.split(":").map(Number);
+    if (hours * 60 + minutes + payload.durationMinutes > 20 * 60) {
+      setMessage("El horario debe terminar a más tardar a las 20:00.", true);
+      return;
+    }
 
-      try {
-        if (slotId) {
-          await apiRequest(`/api/admin/slots/${slotId}`, {
-            method: "PATCH",
-            body: JSON.stringify(payload),
-          });
-          setMessage("Horario actualizado.", false);
-        } else {
-          await apiRequest("/api/admin/slots", {
-            method: "POST",
-            body: JSON.stringify(payload),
-          });
-          setMessage("Horario registrado.", false);
-        }
-        clearSlotForm();
-        await loadAdminData(false);
-      } catch (error) {
-        setMessage(error.message, true);
+    saveSlot.disabled = true;
+    cancelSlot.disabled = true;
+    try {
+      if (slotId !== null) {
+        await apiRequest(`/api/admin/slots/${slotId}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        });
+        setMessage("Horario actualizado.", false);
+      } else {
+        await apiRequest("/api/admin/slots", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        setMessage("Horario registrado.", false);
       }
-    });
+      setSlotForm();
+      await loadAdminData(false);
+    } catch (error) {
+      setMessage(error.message, true);
+    } finally {
+      saveSlot.disabled = false;
+      cancelSlot.disabled = false;
+    }
+  });
 
-  function clearSlotForm() {
-    document.getElementById("admin-slot-id").value = "";
-    document.getElementById("admin-slot-doctor").value = "";
-    document.getElementById("admin-slot-day").value = "1";
-    document.getElementById("admin-slot-time").value = "";
-    document.getElementById("admin-slot-duration").value = "30";
-    document.getElementById("admin-slot-active").checked = true;
+  function setSlotForm(slot = null, doctorId = "") {
+    editingSlotId = slot?.id ?? null;
+    slotForm.reset();
+    slotDoctor.value = doctorId;
+    slotDoctor.disabled = Boolean(slot);
+    saveSlot.textContent = slot ? "Actualizar" : "Guardar horario";
+    cancelSlot.textContent = slot ? "Cancelar" : "Limpiar";
+    if (slot) {
+      document.getElementById("admin-slot-day").value = String(slot.dayOfWeek);
+      document.getElementById("admin-slot-time").value = slot.startTime;
+      document.getElementById("admin-slot-duration").value = String(slot.durationMinutes);
+      document.getElementById("admin-slot-active").checked = slot.isActive;
+    }
   }
 
-  document
-    .getElementById("admin-cancel-slot")
-    .addEventListener("click", clearSlotForm);
+  cancelSlot.addEventListener("click", () => {
+    setSlotForm();
+    setMessage("", false);
+  });
 
   document
     .getElementById("admin-slots-list")
     .addEventListener("click", async (event) => {
+      if (saveSlot.disabled) return;
       const editButton = event.target.closest("[data-slot-id]");
       if (editButton) {
         for (const doctor of adminData.doctors) {
@@ -407,19 +514,9 @@
             (item) => String(item.id) === editButton.dataset.slotId,
           );
           if (!slot) continue;
-          document.getElementById("admin-slot-id").value = slot.id;
-          document.getElementById("admin-slot-doctor").value = doctor.id;
-          document.getElementById("admin-slot-day").value = String(
-            slot.dayOfWeek,
-          );
-          document.getElementById("admin-slot-time").value = slot.startTime;
-          document.getElementById("admin-slot-duration").value = String(
-            slot.durationMinutes,
-          );
-          document.getElementById("admin-slot-active").checked = slot.isActive;
-          document
-            .getElementById("admin-slot-form")
-            .scrollIntoView({ behavior: "smooth" });
+          setSlotForm(slot, doctor.id);
+          setMessage("", false);
+          slotForm.scrollIntoView({ behavior: "smooth" });
           break;
         }
         return;
@@ -434,6 +531,7 @@
           { method: "DELETE" },
         );
         setMessage("Horario eliminado.", false);
+        if (editingSlotId === deleteButton.dataset.deleteSlotId) setSlotForm();
         await loadAdminData(false);
       } catch (error) {
         setMessage(error.message, true);

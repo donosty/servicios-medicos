@@ -1,3 +1,4 @@
+import { sendAppointmentReschedule } from "../services/appointmentEmailService.js";
 import { profileSchema } from "../validators/profileValidator.js";
 import {
   getProfile,
@@ -73,7 +74,18 @@ export const rescheduleAppointmentController = async (
       request.params.appointmentId,
       parsed.data,
     );
-    return response.json({ appointment });
+    let emailSent = true;
+    try {
+      await sendAppointmentReschedule({
+        ...appointment,
+        patientName: request.usuario.fullName,
+        patientEmail: request.usuario.email,
+      });
+    } catch (error) {
+      emailSent = false;
+      console.error("No se pudo enviar el correo de reprogramación:", error.message);
+    }
+    return response.json({ appointment, emailSent });
   } catch (error) {
     return next(error);
   }

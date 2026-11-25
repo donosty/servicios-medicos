@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware.js";
 import {
   getAdminData,
+  saveDirectoryEntry,
   createAdminService,
   updateAdminService,
   createAdminSlot,
@@ -25,6 +26,19 @@ router.get("/api/admin/data", async (_request, response, next) => {
     next(error);
   }
 });
+
+for (const kind of ["doctors", "specialties"]) {
+  const save = async (request, response, next) => {
+    try {
+      const data = await saveDirectoryEntry(kind, request.params.id, request.body);
+      response.status(request.params.id ? 200 : 201).json(data);
+    } catch (error) {
+      next(error);
+    }
+  };
+  router.post(`/api/admin/${kind}`, save);
+  router.patch(`/api/admin/${kind}/:id`, save);
+}
 
 router.post("/api/admin/services", async (request, response, next) => {
   try {
@@ -65,14 +79,32 @@ router.patch(
   },
 );
 
-router.post("/api/admin/slots", async (request, response, next) => {
+function validateSlotSchedule(request, response, next) {
+  const { dayOfWeek, startTime } = request.body;
+  if (
+    dayOfWeek !== undefined &&
+    !((typeof dayOfWeek === "number" || typeof dayOfWeek === "string") &&
+      /^[1-6]$/.test(String(dayOfWeek)))
+  ) {
+    return response.status(400).json({ message: "Selecciona un día de lunes a sábado." });
+  }
+  if (
+    startTime !== undefined &&
+    (typeof startTime !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime))
+  ) {
+    return response.status(400).json({ message: "Selecciona una hora válida." });
+  }
+  next();
+}
+
+router.post("/api/admin/slots", validateSlotSchedule, async (request, response, next) => {
   try {
     const { doctorId, dayOfWeek, startTime, durationMinutes, isActive } =
       request.body;
     if (
       !doctorId ||
       dayOfWeek === undefined ||
-      !/^\d{2}:\d{2}$/.test(startTime ?? "")
+      startTime === undefined
     ) {
       return response
         .status(400)
@@ -92,7 +124,7 @@ router.post("/api/admin/slots", async (request, response, next) => {
   }
 });
 
-router.patch("/api/admin/slots/:slotId", async (request, response, next) => {
+router.patch("/api/admin/slots/:slotId", validateSlotSchedule, async (request, response, next) => {
   try {
     const data = { ...request.body };
     if (data.dayOfWeek !== undefined) data.dayOfWeek = Number(data.dayOfWeek);

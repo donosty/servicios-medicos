@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import nodemailer from "nodemailer";
-import { sendAppointmentConfirmation } from "../src/services/appointmentEmailService.js";
+import { sendAppointmentConfirmation, sendAppointmentReschedule } from "../src/services/appointmentEmailService.js";
 
 const smtpVariables = [
   "SMTP_HOST",
@@ -86,4 +86,22 @@ test("falla explícitamente cuando no existe configuración SMTP", async (t) => 
     }),
     { message: "La configuración SMTP no está completa." },
   );
+});
+
+test("notifica el horario anterior y el nuevo al reprogramar", async (t) => {
+  preserveSmtpVariables(t);
+  Object.assign(process.env, { SMTP_HOST: "smtp.example.com", SMTP_USER: "sender@example.com", SMTP_PASSWORD: "test" });
+  const sendMail = t.mock.fn(async () => {});
+  t.mock.method(nodemailer, "createTransport", () => ({ sendMail }));
+  await sendAppointmentReschedule({
+    patientEmail: "patient@example.com", patientName: "Ana", folio: "MED-123",
+    previousDate: "2026-12-10", previousTime: "09:00", date: "2026-12-12", time: "16:30",
+  });
+  const [message] = sendMail.mock.calls[0].arguments;
+  assert.equal(message.to, "patient@example.com");
+  assert.match(message.subject, /Cambio de cita MEDICOM - MED-123/);
+  for (const body of [message.text, message.html]) {
+    assert.match(body, /10 de diciembre de 2026 a las 09:00/);
+    assert.match(body, /12 de diciembre de 2026 a las 16:30/);
+  }
 });

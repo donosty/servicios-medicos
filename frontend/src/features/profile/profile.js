@@ -310,7 +310,9 @@
           }),
         },
       );
-      message.textContent = `Horario actualizado: ${data.appointment.date} a las ${formatTime(data.appointment.time)}.`;
+      const emailNotice = data.emailSent ? "Te enviamos el cambio por correo." : "No se pudo enviar el correo.";
+      document.getElementById("reschedule-result").textContent =
+        `Horario actualizado: ${data.appointment.date} a las ${formatTime(data.appointment.time)}. ${emailNotice}`;
       await loadAppointments();
     } catch (error) {
       message.textContent = error.message;
