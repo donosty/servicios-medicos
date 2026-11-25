@@ -264,11 +264,10 @@ Las prácticas que pueden observarse en el repositorio son:
 - **Despliegue continuo condicionado:** publicación y despliegue vinculados a \`main\`, con imágenes identificadas por SHA.
 - **Control de cambios mediante Git y Pull Requests:** trabajo distribuido en ramas y cambios integrados a través de PR.
 
-No se atribuye al proyecto un marco formal como Scrum o Kanban porque no hay evidencia suficiente de su uso en el historial disponible.
 
 ## Informe de contribuciones del equipo
 
-Este informe reconstruye las responsabilidades a partir del historial de Git, los Pull Requests y los archivos modificados desde la creación del repositorio (**4 de noviembre de 2026**) hasta la integración más reciente revisada (**25 de noviembre de 2026**). Los roles son descripciones profesionales del trabajo realizado en MEDICOM, no niveles de seniority.
+Este informe reconstruye las responsabilidades a partir del historial de Git, los Pull Requests y los archivos modificados desde la creación del repositorio. Los roles son descripciones profesionales del trabajo realizado en MEDICOM, no niveles de seniority.
 
 El número de commits, líneas modificadas o Pull Requests no se utiliza como medida directa de esfuerzo, calidad o capacidad individual: los merges, las integraciones y el trabajo colaborativo pueden alterar esas cifras. La asignación de responsabilidad de infraestructura también incorpora la distribución de tareas confirmada por el equipo.
 
@@ -347,17 +346,6 @@ El historial muestra una distribución complementaria:
 - **donosty + diego2432:** provisión y configuración de infraestructura de GCP.
 
 La colaboración evolucionó desde la estructura inicial de la aplicación y el esquema de datos hacia módulos de usuario, administración, automatización de despliegues y funcionalidades adicionales. Las aportaciones no son intercambiables: cada integrante cubrió una parte distinta del producto y el resultado depende de su integración.
-
-## Oportunidades técnicas para siguientes iteraciones
-
-Las siguientes propuestas se desprenden de la arquitectura y las pruebas visibles en el repositorio; no representan funcionalidades ya implementadas:
-
-1. Añadir pruebas end-to-end de navegador para registro, inicio de sesión, agendamiento, reprogramación y administración.
-2. Ejecutar pruebas de integración de migraciones contra una instancia PostgreSQL efímera en CI.
-3. Definir y probar un procedimiento periódico de respaldo y restauración del disco/base de datos.
-4. Incorporar monitoreo, alertas y métricas de disponibilidad para la VM, contenedores, API y PostgreSQL.
-5. Evaluar infraestructura como código para versionar y reproducir VPC, firewall, IAM, discos y VM.
-6. Diseñar una estrategia de rollback de aplicación y migraciones, además de la identificación de imágenes por SHA.
 
 ## Ejecución local
 
