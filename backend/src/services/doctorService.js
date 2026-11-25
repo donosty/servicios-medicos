@@ -1,4 +1,4 @@
-import { MedicalSpecialty, Doctor } from '../models/index.js';
+import { MedicalSpecialty, Doctor } from "../models/index.js";
 
 export const getDoctors = async (specialtySlug) => {
   const specialties = await MedicalSpecialty.findAll({
@@ -6,16 +6,28 @@ export const getDoctors = async (specialtySlug) => {
       isActive: true,
       ...(specialtySlug ? { slug: specialtySlug } : {}),
     },
-    attributes: ['specialtyId', 'slug', 'name'],
-    include: [{
-      model: Doctor,
-      as: 'medicos',
-      attributes: ['doctorId', 'professionalTitle', 'firstName', 'lastName', 'description', 'imagePath'],
-      through: { attributes: [] },
-      where: { isActive: true },
-      required: true,
-    }],
-    order: [['displayOrder', 'ASC'], ['medicos', 'apellidos', 'ASC']],
+    attributes: ["specialtyId", "slug", "name"],
+    include: [
+      {
+        model: Doctor,
+        as: "medicos",
+        attributes: [
+          "doctorId",
+          "professionalTitle",
+          "firstName",
+          "lastName",
+          "description",
+          "imagePath",
+        ],
+        through: { attributes: [] },
+        where: { isActive: true },
+        required: true,
+      },
+    ],
+    order: [
+      ["displayOrder", "ASC"],
+      ["medicos", "apellidos", "ASC"],
+    ],
   });
 
   return specialties.flatMap((item) =>

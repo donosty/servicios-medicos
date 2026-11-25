@@ -1,11 +1,11 @@
-import { profileSchema } from '../validators/profileValidator.js';
+import { profileSchema } from "../validators/profileValidator.js";
 import {
   getProfile,
   updateProfile,
   getUserAppointments,
   rescheduleUserAppointment,
-} from '../services/profileService.js';
-import { rescheduleSchema } from '../validators/profileValidator.js';
+} from "../services/profileService.js";
+import { rescheduleSchema } from "../validators/profileValidator.js";
 
 export const getProfileController = async (request, response, next) => {
   try {
@@ -21,7 +21,7 @@ export const updateProfileController = async (request, response, next) => {
     const parsed = profileSchema.safeParse(request.body);
     if (!parsed.success) {
       return response.status(400).json({
-        message: 'Los datos del perfil no son válidos.',
+        message: "Los datos del perfil no son válidos.",
         errors: parsed.error.flatten().fieldErrors,
       });
     }
@@ -42,11 +42,17 @@ export const getAppointmentsController = async (request, response, next) => {
   }
 };
 
-export const rescheduleAppointmentController = async (request, response, next) => {
+export const rescheduleAppointmentController = async (
+  request,
+  response,
+  next,
+) => {
   try {
     const parsed = rescheduleSchema.safeParse(request.body);
     if (!parsed.success) {
-      return response.status(400).json({ message: 'La nueva fecha y hora no son válidas.' });
+      return response
+        .status(400)
+        .json({ message: "La nueva fecha y hora no son válidas." });
     }
 
     const appointment = await rescheduleUserAppointment(

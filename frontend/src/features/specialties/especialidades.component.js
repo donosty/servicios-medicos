@@ -8,7 +8,11 @@
       "$scope",
       "medicalSpecialties",
       "stringUtils",
-      function SpecialtyCatalogController($scope, medicalSpecialties, stringUtils) {
+      function SpecialtyCatalogController(
+        $scope,
+        medicalSpecialties,
+        stringUtils,
+      ) {
         const ctrl = this;
         ctrl.specialties = medicalSpecialties;
 

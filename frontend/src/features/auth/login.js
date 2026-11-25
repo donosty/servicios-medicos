@@ -3,19 +3,24 @@
 
   const form = document.getElementById("login-form");
   const message = document.getElementById("login-message");
-  const resumeBooking = new URLSearchParams(window.location.search).get("cita") === "continuar";
+  const resumeBooking =
+    new URLSearchParams(window.location.search).get("cita") === "continuar";
   const homePath = resumeBooking ? "/index.html?cita=continuar" : "/index.html";
 
   if (resumeBooking) {
-    document.querySelector(".auth-intro").textContent = "Inicia sesión para continuar con tu cita.";
-    document.getElementById("register-link").href = "/register.html?cita=continuar";
+    document.querySelector(".auth-intro").textContent =
+      "Inicia sesión para continuar con tu cita.";
+    document.getElementById("register-link").href =
+      "/register.html?cita=continuar";
     const homeLink = document.getElementById("home-link");
     homeLink.href = homePath;
     homeLink.textContent = "Volver a mi selección";
   }
 
   function redirectUser(user) {
-    window.location.replace(user.role === "administrador" ? "/admin.html" : homePath);
+    window.location.replace(
+      user.role === "administrador" ? "/admin.html" : homePath,
+    );
   }
 
   fetch("/api/auth/session", { credentials: "same-origin" })

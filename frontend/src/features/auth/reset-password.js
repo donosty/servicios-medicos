@@ -36,7 +36,8 @@
       if (!response.ok || !data.valid) throw new Error(data.message);
       form.hidden = false;
     } catch (error) {
-      message.textContent = error.message || "El enlace de restablecimiento no es válido.";
+      message.textContent =
+        error.message || "El enlace de restablecimiento no es válido.";
     }
   }
 
@@ -65,7 +66,8 @@
       message.textContent = "Contraseña restablecida correctamente.";
       window.setTimeout(() => window.location.replace("/login.html"), 3000);
     } catch (error) {
-      message.textContent = error.message || "No fue posible restablecer la contraseña.";
+      message.textContent =
+        error.message || "No fue posible restablecer la contraseña.";
     } finally {
       submit.disabled = false;
     }

@@ -4,7 +4,7 @@ import {
   passwordResetRequestSchema,
   passwordResetTokenSchema,
   passwordResetSchema,
-} from '../validators/authValidator.js';
+} from "../validators/authValidator.js";
 import {
   registerUser,
   loginUser,
@@ -15,19 +15,19 @@ import {
   cancelPasswordResetToken,
   resetPassword,
   COOKIE_NAME,
-} from '../services/authService.js';
+} from "../services/authService.js";
 import {
   readCookie,
   setSessionCookie,
   clearSessionCookie,
-} from '../middlewares/authMiddleware.js';
+} from "../middlewares/authMiddleware.js";
 
 export const register = async (request, response, next) => {
   try {
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success) {
       return response.status(400).json({
-        message: 'Los datos de registro no son válidos.',
+        message: "Los datos de registro no son válidos.",
         errors: parsed.error.flatten().fieldErrors,
       });
     }
@@ -44,7 +44,7 @@ export const login = async (request, response, next) => {
     const parsed = loginSchema.safeParse(request.body);
     if (!parsed.success) {
       return response.status(400).json({
-        message: 'Los datos de inicio de sesión no son válidos.',
+        message: "Los datos de inicio de sesión no son válidos.",
       });
     }
 
@@ -76,25 +76,39 @@ export const logout = async (request, response, next) => {
   }
 };
 
-export const requestPasswordResetController = async (request, response, next) => {
+export const requestPasswordResetController = async (
+  request,
+  response,
+  next,
+) => {
   try {
     const parsed = passwordResetRequestSchema.safeParse(request.body);
     if (parsed.success) {
       await requestPasswordReset(parsed.data.email);
     }
   } catch (error) {
-    console.error('No fue posible procesar la solicitud de restablecimiento:', error.message);
+    console.error(
+      "No fue posible procesar la solicitud de restablecimiento:",
+      error.message,
+    );
   }
   return response.status(200).json({
-    message: 'Si existe una cuenta con este correo, se te enviará un enlace para restablecer la contraseña.',
+    message:
+      "Si existe una cuenta con este correo, se te enviará un enlace para restablecer la contraseña.",
   });
 };
 
-export const validatePasswordResetController = async (request, response, next) => {
+export const validatePasswordResetController = async (
+  request,
+  response,
+  next,
+) => {
   try {
     const parsed = passwordResetTokenSchema.safeParse(request.query);
     if (!parsed.success) {
-      return response.status(410).json({ message: 'El enlace de restablecimiento no es válido.' });
+      return response
+        .status(410)
+        .json({ message: "El enlace de restablecimiento no es válido." });
     }
     await validatePasswordResetToken(parsed.data.token);
     return response.json({ valid: true });
@@ -103,7 +117,11 @@ export const validatePasswordResetController = async (request, response, next) =
   }
 };
 
-export const cancelPasswordResetController = async (request, response, next) => {
+export const cancelPasswordResetController = async (
+  request,
+  response,
+  next,
+) => {
   try {
     const parsed = passwordResetTokenSchema.safeParse(request.body);
     if (parsed.success) await cancelPasswordResetToken(parsed.data.token);
@@ -117,10 +135,12 @@ export const resetPasswordController = async (request, response, next) => {
   try {
     const parsed = passwordResetSchema.safeParse(request.body);
     if (!parsed.success) {
-      return response.status(400).json({ message: 'Ingresa una contraseña válida.' });
+      return response
+        .status(400)
+        .json({ message: "Ingresa una contraseña válida." });
     }
     await resetPassword(parsed.data.token, parsed.data.password);
-    return response.json({ message: 'Contraseña restablecida correctamente.' });
+    return response.json({ message: "Contraseña restablecida correctamente." });
   } catch (error) {
     return next(error);
   }

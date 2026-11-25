@@ -3,8 +3,11 @@
 
   const form = document.getElementById("register-form");
   const message = document.getElementById("register-message");
-  const resumeBooking = new URLSearchParams(window.location.search).get("cita") === "continuar";
-  const loginPath = resumeBooking ? "/login.html?cita=continuar" : "/login.html";
+  const resumeBooking =
+    new URLSearchParams(window.location.search).get("cita") === "continuar";
+  const loginPath = resumeBooking
+    ? "/login.html?cita=continuar"
+    : "/login.html";
   const homePath = resumeBooking ? "/index.html?cita=continuar" : "/index.html";
   document.getElementById("login-link").href = loginPath;
 
@@ -15,7 +18,9 @@
     })
     .then((session) => {
       if (!session || !session.authenticated) return;
-      window.location.replace(session.user.role === "administrador" ? "/admin.html" : homePath);
+      window.location.replace(
+        session.user.role === "administrador" ? "/admin.html" : homePath,
+      );
     })
     .catch(() => {});
 

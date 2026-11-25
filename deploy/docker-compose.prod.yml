@@ -1,3 +1,5 @@
+name: medicom-gcp
+
 services:
   db:
     image: postgres:16-alpine
@@ -7,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /srv/medicom-data/postgres:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:
@@ -40,8 +42,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migrations:
-        condition: service_completed_successfully
     networks:
       - app-network
     healthcheck:
@@ -59,16 +59,35 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: always
-    ports:
-      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - app-network
 
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST:?PUBLIC_HOST is required}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+      - app-network
+
   migrations:
     image: ${MIGRATIONS_IMAGE}
+    profiles: [migrations]
     depends_on:
       db:
         condition: service_healthy
@@ -82,7 +101,8 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
 
 volumes:
-  postgres_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-network:

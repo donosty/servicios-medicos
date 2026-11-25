@@ -1,4 +1,4 @@
-import { getActiveSpecialties } from '../services/specialtyService.js';
+import { getActiveSpecialties } from "../services/specialtyService.js";
 
 export const getSpecialties = async (_request, response, next) => {
   try {

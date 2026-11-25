@@ -11,7 +11,10 @@ test("index carga el módulo AngularJS desde la nueva estructura", async () => {
   assert.match(html, /\/features\/booking\/booking\.component\.js/);
   assert.match(html, /<featured-services/);
   assert.match(html, /featured-services\.css/);
-  assert.match(html, /ng-if="!home\.sessionUser" href="\/login\.html"/);
+  assert.match(
+    html,
+    /ng-if="!home\.sessionUser"\s+href="\/login\.html"/
+  );
 });
 
 test("componentes principales siguen registrados", async () => {
@@ -71,7 +74,10 @@ test("login ofrece restablecimiento y las vistas cuentan con formularios seguros
   const login = await readFile(new URL("login.html", sourcePath), "utf8");
   assert.match(login, /forgot-password\.html/);
 
-  const forgot = await readFile(new URL("forgot-password.html", sourcePath), "utf8");
+  const forgot = await readFile(
+    new URL("forgot-password.html", sourcePath),
+    "utf8",
+  );
   assert.match(forgot, /forgot-password-form/);
   const forgotScript = await readFile(
     new URL("features/auth/forgot-password.js", sourcePath),
@@ -80,7 +86,10 @@ test("login ofrece restablecimiento y las vistas cuentan con formularios seguros
   assert.match(forgotScript, /5000/);
   assert.match(forgotScript, /Si existe una cuenta con este correo/);
 
-  const reset = await readFile(new URL("reset-password.html", sourcePath), "utf8");
+  const reset = await readFile(
+    new URL("reset-password.html", sourcePath),
+    "utf8",
+  );
   assert.match(reset, /reset-password-form/);
   const resetScript = await readFile(
     new URL("features/auth/reset-password.js", sourcePath),
@@ -91,7 +100,10 @@ test("login ofrece restablecimiento y las vistas cuentan con formularios seguros
 });
 
 test("los estilos globales y del perfil comparten la paleta MEDICOM", async () => {
-  const globalStyles = await readFile(new URL("styles.css", sourcePath), "utf8");
+  const globalStyles = await readFile(
+    new URL("styles.css", sourcePath),
+    "utf8",
+  );
   const profileStyles = await readFile(
     new URL("features/profile/profile.css", sourcePath),
     "utf8",
@@ -100,5 +112,8 @@ test("los estilos globales y del perfil comparten la paleta MEDICOM", async () =
   assert.match(globalStyles, /:root\s*\{[^}]*--cyan:\s*#009fd9/);
   assert.match(profileStyles, /body\.profile-page/);
   assert.match(profileStyles, /background:\s*#f4f9fc/);
-  assert.doesNotMatch(profileStyles, /backdrop-filter|rgba\(255,\s*255,\s*255,\s*0\.(7|8)/);
+  assert.doesNotMatch(
+    profileStyles,
+    /backdrop-filter|rgba\(255,\s*255,\s*255,\s*0\.(7|8)/,
+  );
 });

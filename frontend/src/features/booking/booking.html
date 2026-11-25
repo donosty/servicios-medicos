@@ -35,7 +35,10 @@
         <section class="booking-section" aria-labelledby="medico-titulo">
           <h2 id="medico-titulo"><span>2</span> Elige al especialista</h2>
           <p ng-if="$ctrl.loadingDoctors" role="status">Cargando médicos…</p>
-          <p ng-if="$ctrl.selectedSpecialty && !$ctrl.loadingDoctors && !$ctrl.errorMessage && !$ctrl.doctors.length" role="status">
+          <p
+            ng-if="$ctrl.selectedSpecialty && !$ctrl.loadingDoctors && !$ctrl.errorMessage && !$ctrl.doctors.length"
+            role="status"
+          >
             No hay médicos disponibles para esta especialidad.
           </p>
           <div class="doctor-grid">
@@ -93,8 +96,13 @@
 
           <p class="booking-label">Horario disponible</p>
           <p ng-if="$ctrl.loadingTimes" role="status">Cargando horarios…</p>
-          <p ng-if="$ctrl.availabilityError" role="alert">{{$ctrl.availabilityError}}</p>
-          <p ng-if="$ctrl.selectedDoctor.id && $ctrl.selectedDate.value && !$ctrl.loadingTimes && !$ctrl.availabilityError && !$ctrl.availableTimes.length" role="status">
+          <p ng-if="$ctrl.availabilityError" role="alert">
+            {{$ctrl.availabilityError}}
+          </p>
+          <p
+            ng-if="$ctrl.selectedDoctor.id && $ctrl.selectedDate.value && !$ctrl.loadingTimes && !$ctrl.availabilityError && !$ctrl.availableTimes.length"
+            role="status"
+          >
             No hay horarios disponibles para esta fecha.
           </p>
           <div
@@ -115,14 +123,21 @@
           </div>
         </section>
 
-        <section class="booking-section" aria-labelledby="datos-titulo" ng-if="$ctrl.sessionUser">
+        <section
+          class="booking-section"
+          aria-labelledby="datos-titulo"
+          ng-if="$ctrl.sessionUser"
+        >
           <h2 id="datos-titulo"><span>4</span> Tus datos</h2>
           <p class="booking-profile-data">
             La cita se vinculará automáticamente con:
             <strong>{{$ctrl.sessionUser.fullName}}</strong>
             <span>{{$ctrl.sessionUser.email}}</span>
             <span>{{$ctrl.sessionUser.phone}}</span>
-            <a ng-if="!$ctrl.sessionUser.phone && $ctrl.sessionUser.role === 'consumidor'" href="/profile.html">
+            <a
+              ng-if="!$ctrl.sessionUser.phone && $ctrl.sessionUser.role === 'consumidor'"
+              href="/profile.html"
+            >
               Agrega tu teléfono en Mi perfil
             </a>
           </p>

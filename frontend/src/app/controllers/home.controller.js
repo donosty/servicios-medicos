@@ -67,13 +67,17 @@
       function openView(view, titleId) {
         home.view = view;
         home.closeMenu();
-        $timeout(function () {
-          if (home.view !== view) return;
-          const content = doc.getElementById("contenido");
-          const title = titleId && doc.getElementById(titleId);
-          (title || content).focus({ preventScroll: true });
-          content.scrollIntoView();
-        }, 0, false);
+        $timeout(
+          function () {
+            if (home.view !== view) return;
+            const content = doc.getElementById("contenido");
+            const title = titleId && doc.getElementById(titleId);
+            (title || content).focus({ preventScroll: true });
+            content.scrollIntoView();
+          },
+          0,
+          false,
+        );
       }
 
       home.openSpecialties = function (query) {
@@ -98,14 +102,17 @@
 
       home.logout = function (event) {
         const trigger = event.currentTarget;
-        api.logout()
+        api
+          .logout()
           .then(function () {
             home.sessionUser = null;
             home.returnHome();
             $timeout(() => doc.querySelector(".brand-link").focus(), 0, false);
           })
           .catch(function () {
-            home.showNotice("No fue posible cerrar la sesión.", { currentTarget: trigger });
+            home.showNotice("No fue posible cerrar la sesión.", {
+              currentTarget: trigger,
+            });
           });
       };
 
